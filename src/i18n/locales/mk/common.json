@@ -1,0 +1,65 @@
+{
+  "brand": {
+    "name": "CanvasArt",
+    "tagline": "Оригинална уметност, убаво рамкувана"
+  },
+  "nav": {
+    "home": "Почетна",
+    "gallery": "Галерија",
+    "customers": "Клиенти",
+    "offers": "Понуди",
+    "contact": "Контакт",
+    "cart": "Кошничка",
+    "admin": "Админ"
+  },
+  "language": {
+    "select": "Јазик",
+    "en": "English",
+    "mk": "Македонски"
+  },
+  "actions": {
+    "viewAll": "Погледни ги сите",
+    "viewDetails": "Детали",
+    "addToCart": "Додади во кошничка",
+    "quickView": "Брз преглед",
+    "readMore": "Прочитај повеќе",
+    "submit": "Испрати",
+    "cancel": "Откажи",
+    "close": "Затвори",
+    "save": "Зачувај",
+    "edit": "Измени",
+    "delete": "Избриши",
+    "search": "Пребарај",
+    "filter": "Филтер",
+    "sort": "Подреди",
+    "back": "Назад",
+    "continue": "Продолжи",
+    "confirm": "Потврди",
+    "loadMore": "Прикажи повеќе",
+    "seeMore": "Прикажи повеќе",
+    "tryAgain": "Обиди се повторно",
+    "logout": "Одјава",
+    "login": "Најава"
+  },
+  "status": {
+    "loading": "Се вчитува…",
+    "error": "Нешто тргна наопаку.",
+    "empty": "Нема податоци.",
+    "notFound": "Страницата не е пронајдена."
+  },
+  "footer": {
+    "description": "Курирана колекција на оригинални слики и уметнички принтови, рачно рамкувани и доставени со грижа.",
+    "navigationTitle": "Истражи",
+    "contactTitle": "Контакт",
+    "newsletterTitle": "Билтен",
+    "newsletterText": "Пријавете се за нови уметнички дела, изложби и ексклузивни понуди.",
+    "newsletterPlaceholder": "Вашата е-пошта",
+    "newsletterSubmit": "Пријави се",
+    "newsletterSuccess": "Ви благодариме за пријавата.",
+    "privacy": "Политика за приватност",
+    "terms": "Услови за користење",
+    "copyright": "© {{year}} CanvasArt. Сите права задржани.",
+    "followUs": "Следете нè"
+  },
+  "currency": "ден"
+}

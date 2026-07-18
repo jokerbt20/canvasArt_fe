@@ -1,0 +1,22 @@
+{
+  "title": "Offers",
+  "subtitle": "Original art and framing, at exceptional value.",
+  "tabs": {
+    "all": "All Offers",
+    "paintings": "Paintings",
+    "frames": "Frames",
+    "bundles": "Bundles"
+  },
+  "sections": {
+    "individual": "Individual Discounts",
+    "bundles": "Painting + Frame Discounts"
+  },
+  "card": {
+    "originalPrice": "Was",
+    "salePrice": "Now",
+    "discount": "-{{percent}}%",
+    "endsIn": "Ends {{date}}",
+    "shopNow": "Shop Now"
+  },
+  "empty": "No active offers right now — check back soon."
+}

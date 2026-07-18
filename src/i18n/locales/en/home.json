@@ -1,0 +1,54 @@
+{
+  "hero": {
+    "eyebrow": "The Gallery",
+    "titleLine1": "Art That",
+    "titleLine2": "Moves You",
+    "subtitle": "Discover an evolving collection of original paintings, curated for the discerning collector.",
+    "ctaPrimary": "Explore the Gallery",
+    "ctaSecondary": "Our Offers"
+  },
+  "featured": {
+    "eyebrow": "Curated Selection",
+    "title": "Featured Paintings",
+    "subtitle": "A rotating edit of the pieces our collectors love most."
+  },
+  "categories": {
+    "eyebrow": "Browse by Style",
+    "title": "Featured Categories",
+    "subtitle": "Find the mood that speaks to your space."
+  },
+  "offers": {
+    "eyebrow": "Limited Time",
+    "title": "Current Offers",
+    "subtitle": "Exceptional pieces, exceptional prices."
+  },
+  "frames": {
+    "eyebrow": "Finishing Touch",
+    "title": "Framing, Perfected",
+    "subtitle": "Hand-finished frames crafted to complement every canvas.",
+    "cta": "Explore Frames"
+  },
+  "customers": {
+    "eyebrow": "Trusted by Collectors",
+    "title": "What Our Customers Say"
+  },
+  "about": {
+    "eyebrow": "Since Day One",
+    "title": "A Gallery Built on Craft",
+    "body": "CanvasArt began as a small studio with a singular belief: that original art should be accessible, beautifully presented, and delivered with the same care an artist gives their canvas. Today we work with independent painters around the world to bring their work into homes that will love it.",
+    "cta": "Learn More"
+  },
+  "instagram": {
+    "eyebrow": "Follow Along",
+    "title": "@canvasart on Instagram"
+  },
+  "newsletter": {
+    "title": "Stay Inspired",
+    "subtitle": "New arrivals, artist spotlights and private sales — straight to your inbox."
+  },
+  "contactBanner": {
+    "title": "Have a Question?",
+    "subtitle": "Our art advisors are here to help you find the perfect piece.",
+    "cta": "Contact Us"
+  }
+}

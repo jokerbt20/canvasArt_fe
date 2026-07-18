@@ -1,0 +1,63 @@
+{
+  "login": {
+    "title": "Админ најава",
+    "subtitle": "Најавете се за да ја управувате галеријата.",
+    "email": "Е-пошта",
+    "password": "Лозинка",
+    "submit": "Најави се",
+    "error": "Погрешна е-пошта или лозинка."
+  },
+  "nav": {
+    "dashboard": "Контролна табла",
+    "paintings": "Слики",
+    "categories": "Категории",
+    "frames": "Рамки",
+    "orders": "Нарачки",
+    "promotions": "Промоции",
+    "homepage": "Почетна страница",
+    "slideshow": "Слајдшоу",
+    "customers": "Клиенти",
+    "users": "Корисници",
+    "settings": "Поставки"
+  },
+  "dashboard": {
+    "title": "Контролна табла",
+    "totalRevenue": "Вкупен приход",
+    "totalOrders": "Вкупно нарачки",
+    "totalPaintings": "Вкупно слики",
+    "totalCustomers": "Клиенти",
+    "recentOrders": "Неодамнешни нарачки",
+    "popularPaintings": "Популарни слики",
+    "popularCategories": "Популарни категории"
+  },
+  "table": {
+    "search": "Пребарај…",
+    "noResults": "Нема резултати.",
+    "rowsPerPage": "Редови по страница",
+    "actions": "Акции",
+    "status": "Статус",
+    "name": "Име",
+    "price": "Цена",
+    "category": "Категорија",
+    "createdAt": "Креирано",
+    "confirmDelete": "Дали сте сигурни дека сакате да го избришете овој артикл?"
+  },
+  "form": {
+    "addNew": "Додади ново",
+    "editItem": "Измени",
+    "uploadImage": "Прикачи слика",
+    "dragDropHint": "Повлечете и пуштете слика тука, или кликнете за прегледување",
+    "uploading": "Се прикачува…"
+  },
+  "orders": {
+    "status": {
+      "pending": "На чекање",
+      "contacted": "Контактиран",
+      "confirmed": "Потврдено",
+      "processing": "Во обработка",
+      "shipped": "Испратено",
+      "delivered": "Доставено",
+      "cancelled": "Откажано"
+    }
+  }
+}

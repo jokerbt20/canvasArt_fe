@@ -1,0 +1,25 @@
+{
+  "title": "Contact Us",
+  "subtitle": "We'd love to hear from you.",
+  "info": {
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "hours": "Working Hours"
+  },
+  "form": {
+    "name": "Full Name",
+    "email": "Email Address",
+    "subject": "Subject",
+    "message": "Message",
+    "submit": "Send Message",
+    "success": "Your message has been sent. We'll be in touch soon.",
+    "error": "We couldn't send your message. Please try again."
+  },
+  "validation": {
+    "nameRequired": "Please enter your name.",
+    "emailInvalid": "Please enter a valid email address.",
+    "messageRequired": "Please enter a message."
+  },
+  "mapTitle": "Find Us"
+}

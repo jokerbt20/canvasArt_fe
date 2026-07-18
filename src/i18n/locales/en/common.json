@@ -1,0 +1,65 @@
+{
+  "brand": {
+    "name": "CanvasArt",
+    "tagline": "Original Art, Beautifully Framed"
+  },
+  "nav": {
+    "home": "Home",
+    "gallery": "Gallery",
+    "customers": "Customers",
+    "offers": "Offers",
+    "contact": "Contact",
+    "cart": "Cart",
+    "admin": "Admin"
+  },
+  "language": {
+    "select": "Language",
+    "en": "English",
+    "mk": "Македонски"
+  },
+  "actions": {
+    "viewAll": "View All",
+    "viewDetails": "View Details",
+    "addToCart": "Add to Cart",
+    "quickView": "Quick View",
+    "readMore": "Read More",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "back": "Back",
+    "continue": "Continue",
+    "confirm": "Confirm",
+    "loadMore": "Load More",
+    "seeMore": "See More",
+    "tryAgain": "Try Again",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "status": {
+    "loading": "Loading…",
+    "error": "Something went wrong.",
+    "empty": "Nothing to show yet.",
+    "notFound": "Page not found."
+  },
+  "footer": {
+    "description": "A curated collection of original paintings and fine art prints, hand-framed and delivered with care.",
+    "navigationTitle": "Explore",
+    "contactTitle": "Contact",
+    "newsletterTitle": "Newsletter",
+    "newsletterText": "Subscribe for new arrivals, exhibitions and exclusive offers.",
+    "newsletterPlaceholder": "Your email address",
+    "newsletterSubmit": "Subscribe",
+    "newsletterSuccess": "Thank you for subscribing.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© {{year}} CanvasArt. All rights reserved.",
+    "followUs": "Follow Us"
+  },
+  "currency": "ден"
+}

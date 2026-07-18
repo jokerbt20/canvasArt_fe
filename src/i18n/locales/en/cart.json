@@ -1,0 +1,53 @@
+{
+  "title": "Shopping Cart",
+  "empty": {
+    "title": "Your cart is empty",
+    "subtitle": "Browse the gallery to find your next piece.",
+    "cta": "Explore the Gallery"
+  },
+  "item": {
+    "size": "Size",
+    "frame": "Frame",
+    "noFrame": "No Frame",
+    "quantity": "Qty",
+    "remove": "Remove",
+    "each": "each"
+  },
+  "summary": {
+    "title": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "shipping": "Shipping",
+    "shippingCalculated": "Calculated at checkout",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continueShopping": "Continue Shopping"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "contactTitle": "Contact Details",
+    "shippingTitle": "Shipping Address",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "postalCode": "Postal Code",
+    "notes": "Order Notes (optional)",
+    "orderSummary": "Order Summary",
+    "placeOrder": "Place Order",
+    "placingOrder": "Placing Order…"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "emailInvalid": "Please enter a valid email address.",
+    "phoneInvalid": "Please enter a valid phone number."
+  },
+  "success": {
+    "title": "Thank You for Your Order",
+    "subtitle": "Your order {{orderNumber}} has been received. A confirmation has been sent to your email.",
+    "cta": "Continue Shopping"
+  }
+}

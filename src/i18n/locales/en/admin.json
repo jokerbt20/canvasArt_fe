@@ -1,0 +1,63 @@
+{
+  "login": {
+    "title": "Admin Login",
+    "subtitle": "Sign in to manage the gallery.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign In",
+    "error": "Invalid email or password."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "paintings": "Paintings",
+    "categories": "Categories",
+    "frames": "Frames",
+    "orders": "Orders",
+    "promotions": "Promotions",
+    "homepage": "Homepage",
+    "slideshow": "Slideshow",
+    "customers": "Customers",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalRevenue": "Total Revenue",
+    "totalOrders": "Total Orders",
+    "totalPaintings": "Total Paintings",
+    "totalCustomers": "Customers",
+    "recentOrders": "Recent Orders",
+    "popularPaintings": "Popular Paintings",
+    "popularCategories": "Popular Categories"
+  },
+  "table": {
+    "search": "Search…",
+    "noResults": "No results found.",
+    "rowsPerPage": "Rows per page",
+    "actions": "Actions",
+    "status": "Status",
+    "name": "Name",
+    "price": "Price",
+    "category": "Category",
+    "createdAt": "Created",
+    "confirmDelete": "Are you sure you want to delete this item?"
+  },
+  "form": {
+    "addNew": "Add New",
+    "editItem": "Edit",
+    "uploadImage": "Upload Image",
+    "dragDropHint": "Drag and drop an image here, or click to browse",
+    "uploading": "Uploading…"
+  },
+  "orders": {
+    "status": {
+      "pending": "Pending",
+      "contacted": "Contacted",
+      "confirmed": "Confirmed",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    }
+  }
+}

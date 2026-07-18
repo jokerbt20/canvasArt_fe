@@ -1,0 +1,54 @@
+{
+  "title": "The Gallery",
+  "subtitle": "Every painting, one place.",
+  "search": {
+    "placeholder": "Search paintings…"
+  },
+  "filters": {
+    "title": "Filters",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceRange": "Price Range",
+    "clear": "Clear Filters",
+    "apply": "Apply"
+  },
+  "sort": {
+    "label": "Sort by",
+    "newest": "Newest",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "popular": "Most Popular"
+  },
+  "results": {
+    "count": "{{count}} painting found",
+    "count_other": "{{count}} paintings found",
+    "empty": "No paintings match your search.",
+    "loadMore": "Load More Paintings"
+  },
+  "badges": {
+    "new": "New",
+    "sale": "Sale",
+    "soldOut": "Sold Out"
+  },
+  "details": {
+    "size": "Size",
+    "frame": "Frame",
+    "frameSize": "Frame Size",
+    "frameNone": "No Frame",
+    "material": "Material",
+    "color": "Color",
+    "quantity": "Quantity",
+    "description": "Description",
+    "category": "Category",
+    "tags": "Tags",
+    "originalPrice": "Original Price",
+    "salePrice": "Sale Price",
+    "discount": "{{percent}}% Off",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to Cart",
+    "zoom": "Click to Zoom",
+    "specifications": "Specifications",
+    "shippingInfo": "Ships in 3-5 business days, carefully packaged.",
+    "relatedTitle": "You May Also Like"
+  }
+}
