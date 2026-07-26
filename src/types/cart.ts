@@ -2,7 +2,6 @@ export interface CartLineRequest {
   paintingId: number;
   paintingSizeId: number;
   frameId?: number | null;
-  frameSizeId?: number | null;
   quantity: number;
 }
 
@@ -18,8 +17,6 @@ export interface CartLineResponse {
   sizeLabel: string;
   frameId: number | null;
   frameName: string | null;
-  frameSizeId: number | null;
-  frameSizeLabel: string | null;
   paintingUnitPrice: number;
   frameUnitPrice: number;
   unitPrice: number;
@@ -41,21 +38,24 @@ export interface CartResponse {
 }
 
 /**
- * A single locally-persisted cart selection. Only the ids are authoritative — display
- * fields (name/thumbnail/labels) are a snapshot for instant UI, re-validated against
- * /cart/calculate whenever the cart or checkout page loads.
+ * A single locally-persisted cart selection. The ids are authoritative for order creation
+ * (the server re-prices at checkout); the display fields — including the price snapshot —
+ * are captured at add-time so the cart shows exactly what the customer saw on the product
+ * page and never re-runs promotions while browsing the cart.
  */
 export interface LocalCartLine {
   id: string;
   paintingId: number;
   paintingSizeId: number;
   frameId: number | null;
-  frameSizeId: number | null;
   quantity: number;
   paintingName: string;
   paintingSlug: string;
   thumbnailPath: string | null;
   sizeLabel: string;
   frameName: string | null;
-  frameSizeLabel: string | null;
+  /** Per-unit price the customer saw when adding (painting + frame, each already discounted). */
+  unitPrice: number;
+  /** Per-unit pre-discount price, or null when nothing was discounted at add-time. */
+  unitOriginalPrice: number | null;
 }

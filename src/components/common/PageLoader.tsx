@@ -1,17 +1,5 @@
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
+import { LogoLoader } from "./LogoLoader";
 
 export function PageLoader() {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "60vh",
-      }}
-    >
-      <CircularProgress size={28} sx={{ color: "primary.main" }} />
-    </Box>
-  );
+  return <LogoLoader minHeight="60vh" />;
 }

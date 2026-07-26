@@ -10,6 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import SellOutlinedIcon from "@mui/icons-material/SellOutlined";
 import CropOriginalOutlinedIcon from "@mui/icons-material/CropOriginalOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
@@ -18,6 +19,8 @@ import ViewCarouselOutlinedIcon from "@mui/icons-material/ViewCarouselOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 
 const NAV_ITEMS: {
   key: string;
@@ -28,13 +31,16 @@ const NAV_ITEMS: {
   { key: "dashboard", path: "/admin", end: true, icon: DashboardOutlinedIcon },
   { key: "paintings", path: "/admin/paintings", icon: ImageOutlinedIcon },
   { key: "categories", path: "/admin/categories", icon: CategoryOutlinedIcon },
+  { key: "tags", path: "/admin/tags", icon: SellOutlinedIcon },
   { key: "frames", path: "/admin/frames", icon: CropOriginalOutlinedIcon },
   { key: "orders", path: "/admin/orders", icon: ReceiptLongOutlinedIcon },
   { key: "promotions", path: "/admin/promotions", icon: LocalOfferOutlinedIcon },
+  { key: "distributors", path: "/admin/distributors", icon: StorefrontOutlinedIcon },
   { key: "homepage", path: "/admin/homepage", icon: HomeOutlinedIcon },
   { key: "slideshow", path: "/admin/slideshow", icon: ViewCarouselOutlinedIcon },
   { key: "customers", path: "/admin/customers", icon: PeopleAltOutlinedIcon },
   { key: "users", path: "/admin/users", icon: GroupOutlinedIcon },
+  { key: "translations", path: "/admin/translations", icon: TranslateOutlinedIcon },
   { key: "settings", path: "/admin/settings", icon: SettingsOutlinedIcon },
 ];
 

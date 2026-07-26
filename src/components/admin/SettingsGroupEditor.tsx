@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
+import { SubmitButton } from "../common/SubmitButton";
 import { useSettings, useUpsertSettings } from "../../hooks/useContent";
 
 export interface SettingFieldDef {
@@ -38,14 +38,18 @@ export function SettingsGroupEditor({ group, title, fields }: SettingsGroupEdito
   }, [settings]);
 
   const handleSave = async () => {
-    await upsertSettings.mutateAsync({
-      settings: fields.map((field) => ({
-        key: field.key,
-        value: values[field.key] ?? "",
-        group,
-      })),
-    });
-    setSaved(true);
+    try {
+      await upsertSettings.mutateAsync({
+        settings: fields.map((field) => ({
+          key: field.key,
+          value: values[field.key] ?? "",
+          group,
+        })),
+      });
+      setSaved(true);
+    } catch {
+      // Error toast is shown globally; leave the form as-is so the user can retry.
+    }
   };
 
   return (
@@ -56,7 +60,7 @@ export function SettingsGroupEditor({ group, title, fields }: SettingsGroupEdito
 
       {saved && (
         <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSaved(false)}>
-          {t("actions.save")}
+          {t("status.saved", "Saved successfully.")}
         </Alert>
       )}
 
@@ -74,9 +78,9 @@ export function SettingsGroupEditor({ group, title, fields }: SettingsGroupEdito
               minRows={field.multiline ? 4 : undefined}
             />
           ))}
-          <Button variant="contained" onClick={handleSave} disabled={upsertSettings.isPending} sx={{ alignSelf: "flex-start" }}>
+          <SubmitButton variant="contained" onClick={handleSave} loading={upsertSettings.isPending} sx={{ alignSelf: "flex-start" }}>
             {t("actions.save")}
-          </Button>
+          </SubmitButton>
         </Stack>
       </Box>
     </Box>

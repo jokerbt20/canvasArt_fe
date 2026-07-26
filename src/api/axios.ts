@@ -9,8 +9,19 @@ import { tokenStorage } from "../utils/storage";
 import type { ApiResponse } from "../types/common";
 import type { AuthResponse } from "../types/auth";
 
+declare global {
+  interface Window {
+    /** Runtime config injected by /public/config.js — editable post-build, no rebuild required. */
+    __APP_CONFIG__?: { API_BASE_URL?: string };
+  }
+}
+
+/**
+ * Resolved in priority order: runtime /config.js (production deploys — edit and refresh,
+ * no rebuild) → Vite build-time env var (local dev via .env) → localhost fallback.
+ */
 export const API_BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ?? "https://localhost:7153/api";
+  window.__APP_CONFIG__?.API_BASE_URL || import.meta.env.VITE_API_BASE_URL || "https://localhost:7153/api";
 
 /** Origin only (no /api suffix) — used to resolve /media/... image paths returned by the API. */
 export const API_ORIGIN: string = API_BASE_URL.replace(/\/api\/?$/, "");
@@ -50,6 +61,18 @@ apiClient.interceptors.response.use(
       errors: envelope?.errors,
       statusCode: error.response?.status,
     };
+
+    console.error(
+      `[API] ${error.config?.method?.toUpperCase() ?? "?"} ${error.config?.url ?? "?"} failed` +
+        (clientError.statusCode ? ` (${clientError.statusCode})` : ""),
+      {
+        message: clientError.message,
+        errors: clientError.errors,
+        params: error.config?.params,
+        response: envelope,
+      },
+    );
+
     return Promise.reject(Object.assign(error, { clientError }));
   },
 );

@@ -38,7 +38,13 @@
     "notes": "Order Notes (optional)",
     "orderSummary": "Order Summary",
     "placeOrder": "Place Order",
-    "placingOrder": "Placing Order…"
+    "placingOrder": "Placing Order…",
+    "promoCode": "Promo code",
+    "promoApply": "Apply",
+    "promoRemove": "Remove",
+    "promoApplied": "Code {{code}} applied — {{percentage}}% off",
+    "promoInvalid": "This promo code is not valid.",
+    "promoDiscount": "Promo discount"
   },
   "validation": {
     "required": "This field is required.",

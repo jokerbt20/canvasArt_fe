@@ -45,7 +45,8 @@
     "loading": "Loading…",
     "error": "Something went wrong.",
     "empty": "Nothing to show yet.",
-    "notFound": "Page not found."
+    "notFound": "Page not found.",
+    "saved": "Saved successfully."
   },
   "footer": {
     "description": "A curated collection of original paintings and fine art prints, hand-framed and delivered with care.",

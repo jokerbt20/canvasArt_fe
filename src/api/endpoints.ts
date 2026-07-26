@@ -23,6 +23,9 @@ export const endpoints = {
     manage: "/frames/manage",
     image: (id: number) => `/frames/${id}/image`,
   },
+  framePreviews: {
+    get: "/frame-previews",
+  },
   paintings: {
     list: "/paintings",
     bySlug: (slug: string) => `/paintings/${slug}`,
@@ -41,6 +44,17 @@ export const endpoints = {
   },
   cart: {
     calculate: "/cart/calculate",
+  },
+  distributors: {
+    list: "/distributors",
+    byId: (id: number) => `/distributors/${id}`,
+    dashboard: "/distributors/dashboard",
+    promoCodes: (id: number) => `/distributors/${id}/promo-codes`,
+  },
+  promoCodes: {
+    list: "/promo-codes",
+    byId: (id: number) => `/promo-codes/${id}`,
+    apply: "/promo-codes/apply",
   },
   orders: {
     create: "/orders",

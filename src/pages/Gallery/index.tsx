@@ -17,11 +17,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import { PageMeta } from "../../components/common/PageMeta";
 import { EmptyState } from "../../components/common/EmptyState";
 import { PaintingCard } from "../../components/gallery/PaintingCard";
+import { FrameCard } from "../../components/gallery/FrameCard";
 import { usePaintings } from "../../hooks/usePaintings";
+import { useFrames } from "../../hooks/useFrames";
 import { useCategories } from "../../hooks/useCategories";
 import type { PaintingQuery } from "../../types";
 
 const PAGE_SIZE = 12;
+const FRAMES_FILTER_VALUE = "frames";
 
 type SortOption = "newest" | "priceAsc" | "priceDesc";
 
@@ -37,7 +40,9 @@ export default function GalleryPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get("search") ?? "");
 
   const sortOption = (searchParams.get("sort") as SortOption) ?? "newest";
-  const categoryId = searchParams.get("category");
+  const categoryParam = searchParams.get("category");
+  const isFramesView = categoryParam === FRAMES_FILTER_VALUE;
+  const categoryId = !isFramesView ? categoryParam : null;
 
   const query: PaintingQuery = useMemo(
     () => ({
@@ -51,8 +56,28 @@ export default function GalleryPage() {
     [searchParams, categoryId, sortOption],
   );
 
-  const { data, isLoading, isFetching } = usePaintings(query);
+  const frameQuery = useMemo(
+    () => ({
+      page: Number(searchParams.get("page") ?? 1),
+      pageSize: PAGE_SIZE,
+      search: searchParams.get("search") ?? undefined,
+      isActive: true,
+      ...SORT_MAP[sortOption],
+    }),
+    [searchParams, sortOption],
+  );
+
+  const { data: paintingsData, isLoading: paintingsLoading, isFetching: paintingsFetching } = usePaintings(query, {
+    enabled: !isFramesView,
+  });
+  const { data: framesData, isLoading: framesLoading, isFetching: framesFetching } = useFrames(frameQuery, {
+    enabled: isFramesView,
+  });
   const { data: categories } = useCategories();
+
+  const data = isFramesView ? framesData : paintingsData;
+  const isLoading = isFramesView ? framesLoading : paintingsLoading;
+  const isFetching = isFramesView ? framesFetching : paintingsFetching;
 
   const updateParam = (key: string, value: string | undefined) => {
     const next = new URLSearchParams(searchParams);
@@ -121,7 +146,7 @@ export default function GalleryPage() {
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <Select
               size="small"
-              value={categoryId ?? ""}
+              value={categoryParam ?? ""}
               onChange={(e) => updateParam("category", e.target.value || undefined)}
               displayEmpty
               sx={{ minWidth: 180 }}
@@ -132,6 +157,7 @@ export default function GalleryPage() {
                   {c.name}
                 </MenuItem>
               ))}
+              <MenuItem value={FRAMES_FILTER_VALUE}>{t("filters.frames")}</MenuItem>
             </Select>
 
             <Select size="small" value={sortOption} onChange={handleSortChange} sx={{ minWidth: 180 }}>
@@ -142,15 +168,18 @@ export default function GalleryPage() {
           </Stack>
         </Stack>
 
-        {activeCategory && (
+        {(activeCategory || isFramesView) && (
           <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-            <Chip label={activeCategory.name} onDelete={() => updateParam("category", undefined)} />
+            <Chip
+              label={isFramesView ? t("filters.frames") : activeCategory!.name}
+              onDelete={() => updateParam("category", undefined)}
+            />
           </Stack>
         )}
 
         {!isLoading && data && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {t("results.count", { count: data.totalCount })}
+            {t(isFramesView ? "results.countFrames" : "results.count", { count: data.totalCount })}
           </Typography>
         )}
 
@@ -167,11 +196,17 @@ export default function GalleryPage() {
         ) : data && data.items.length > 0 ? (
           <>
             <Grid container spacing={{ xs: 3, md: 4 }} sx={{ opacity: isFetching ? 0.6 : 1, transition: "opacity 200ms ease" }}>
-              {data.items.map((painting, i) => (
-                <Grid key={painting.id} size={{ xs: 12, sm: 6, md: 3 }}>
-                  <PaintingCard painting={painting} index={i % 8} />
-                </Grid>
-              ))}
+              {isFramesView
+                ? framesData!.items.map((frame, i) => (
+                    <Grid key={frame.id} size={{ xs: 12, sm: 6, md: 3 }}>
+                      <FrameCard frame={frame} index={i % 8} />
+                    </Grid>
+                  ))
+                : paintingsData!.items.map((painting, i) => (
+                    <Grid key={painting.id} size={{ xs: 12, sm: 6, md: 3 }}>
+                      <PaintingCard painting={painting} index={i % 8} />
+                    </Grid>
+                  ))}
             </Grid>
 
             {data.totalPages > 1 && (
@@ -187,7 +222,7 @@ export default function GalleryPage() {
             )}
           </>
         ) : (
-          <EmptyState title={t("results.empty")} />
+          <EmptyState title={t(isFramesView ? "results.emptyFrames" : "results.empty")} />
         )}
       </Container>
     </Box>

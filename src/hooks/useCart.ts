@@ -12,7 +12,6 @@ export function useCartCalculation() {
     paintingId: item.paintingId,
     paintingSizeId: item.paintingSizeId,
     frameId: item.frameId,
-    frameSizeId: item.frameSizeId,
     quantity: item.quantity,
   }));
 

@@ -16,6 +16,7 @@ import { PageMeta } from "../../components/common/PageMeta";
 import { AdminDataTable, type AdminColumn } from "../../components/admin/AdminDataTable";
 import { ConfirmDialog } from "../../components/admin/ConfirmDialog";
 import { PaintingImagePicker } from "../../components/admin/PaintingImagePicker";
+import { SubmitButton } from "../../components/common/SubmitButton";
 import {
   useCreateSlideFromPaintingImage,
   useDeleteSlide,
@@ -42,7 +43,7 @@ interface EditFormState {
 
 export default function AdminSlideshowPage() {
   const { t } = useTranslation(["admin", "common"]);
-  const { data: slides, isLoading } = useManageSlides();
+  const { data: slides, isLoading, isError, refetch } = useManageSlides();
   const createSlideFromImage = useCreateSlideFromPaintingImage();
   const updateSlide = useUpdateSlide();
   const updateSlideFromImage = useUpdateSlideFromPaintingImage();
@@ -58,6 +59,7 @@ export default function AdminSlideshowPage() {
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [editImage, setEditImage] = useState<Selection | null>(null);
   const [editSaving, setEditSaving] = useState(false);
+  const [titleError, setTitleError] = useState<string | undefined>(undefined);
 
   const [pendingDelete, setPendingDelete] = useState<Slide | null>(null);
 
@@ -91,6 +93,8 @@ export default function AdminSlideshowPage() {
       }
       setSelections([]);
       setBulkOpen(false);
+    } catch {
+      // Error toast is shown globally; keep the dialog open so the user can retry.
     } finally {
       setBulkSaving(false);
     }
@@ -98,6 +102,7 @@ export default function AdminSlideshowPage() {
 
   const openEdit = (slide: Slide) => {
     setEditing(slide);
+    setTitleError(undefined);
     setEditForm({
       title: slide.title,
       subtitle: slide.subtitle ?? "",
@@ -111,6 +116,10 @@ export default function AdminSlideshowPage() {
 
   const handleEditSave = async () => {
     if (!editing || !editForm) return;
+    if (!editForm.title.trim()) {
+      setTitleError("Title is required.");
+      return;
+    }
     setEditSaving(true);
     try {
       const payload = {
@@ -133,6 +142,8 @@ export default function AdminSlideshowPage() {
       setEditing(null);
       setEditForm(null);
       setEditImage(null);
+    } catch {
+      // Error toast is shown globally; keep the dialog open so the user can retry.
     } finally {
       setEditSaving(false);
     }
@@ -153,6 +164,8 @@ export default function AdminSlideshowPage() {
         rows={slides ?? []}
         rowKey={(row) => row.id}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
         onAddNew={openBulkAdd}
         onEdit={openEdit}
         onDelete={setPendingDelete}
@@ -190,9 +203,9 @@ export default function AdminSlideshowPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setBulkOpen(false)}>{t("common:actions.cancel")}</Button>
-          <Button variant="contained" onClick={handleBulkSave} disabled={bulkSaving || selections.length === 0}>
-            {bulkSaving ? "Creating…" : `Create Slideshow${selections.length ? ` (${selections.length})` : ""}`}
-          </Button>
+          <SubmitButton variant="contained" onClick={handleBulkSave} loading={bulkSaving} disabled={selections.length === 0}>
+            {`Create Slideshow${selections.length ? ` (${selections.length})` : ""}`}
+          </SubmitButton>
         </DialogActions>
       </Dialog>
 
@@ -226,7 +239,17 @@ export default function AdminSlideshowPage() {
                   onToggle={(painting, image) => setEditImage({ painting, image })}
                 />
               </Box>
-              <TextField label="Title" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} fullWidth />
+              <TextField
+                label="Title"
+                value={editForm.title}
+                onChange={(e) => {
+                  setEditForm({ ...editForm, title: e.target.value });
+                  setTitleError(undefined);
+                }}
+                error={Boolean(titleError)}
+                helperText={titleError}
+                fullWidth
+              />
               <TextField label="Subtitle" value={editForm.subtitle} onChange={(e) => setEditForm({ ...editForm, subtitle: e.target.value })} fullWidth multiline minRows={2} />
               <TextField label="Link URL" value={editForm.linkUrl} onChange={(e) => setEditForm({ ...editForm, linkUrl: e.target.value })} fullWidth />
               <TextField label="Button Text" value={editForm.buttonText} onChange={(e) => setEditForm({ ...editForm, buttonText: e.target.value })} fullWidth />
@@ -237,9 +260,9 @@ export default function AdminSlideshowPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditing(null)}>{t("common:actions.cancel")}</Button>
-          <Button variant="contained" onClick={handleEditSave} disabled={editSaving}>
+          <SubmitButton variant="contained" onClick={handleEditSave} loading={editSaving}>
             {t("common:actions.save")}
-          </Button>
+          </SubmitButton>
         </DialogActions>
       </Dialog>
 

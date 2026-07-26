@@ -14,7 +14,14 @@ const CART_STORAGE_KEY = "canvasart_cart";
 function readStoredCart(): LocalCartLine[] {
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as LocalCartLine[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as LocalCartLine[];
+    // Backfill the price snapshot for carts saved before it existed, so totals never NaN.
+    return parsed.map((line) => ({
+      ...line,
+      unitPrice: typeof line.unitPrice === "number" ? line.unitPrice : 0,
+      unitOriginalPrice: typeof line.unitOriginalPrice === "number" ? line.unitOriginalPrice : null,
+    }));
   } catch {
     return [];
   }
@@ -32,7 +39,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 function buildItemId(item: Omit<LocalCartLine, "id">): string {
-  return [item.paintingId, item.paintingSizeId, item.frameId ?? "none", item.frameSizeId ?? "none"].join(":");
+  return [item.paintingId, item.paintingSizeId, item.frameId ?? "none"].join(":");
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {

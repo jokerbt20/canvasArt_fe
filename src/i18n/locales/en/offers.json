@@ -16,7 +16,11 @@
     "salePrice": "Now",
     "discount": "-{{percent}}%",
     "endsIn": "Ends {{date}}",
-    "shopNow": "Shop Now"
+    "shopNow": "Shop Now",
+    "paintingBase": "Painting",
+    "frameBase": "Frame",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to cart"
   },
   "empty": "No active offers right now — check back soon."
 }

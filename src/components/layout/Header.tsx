@@ -84,7 +84,7 @@ export function Header() {
                 transition: "color 320ms ease",
               }}
             >
-              CanvasArts
+              {t("brand.name")}
             </Typography>
           </Box>
 

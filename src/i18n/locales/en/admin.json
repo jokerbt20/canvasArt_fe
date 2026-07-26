@@ -11,14 +11,31 @@
     "dashboard": "Dashboard",
     "paintings": "Paintings",
     "categories": "Categories",
+    "tags": "Tags",
     "frames": "Frames",
     "orders": "Orders",
     "promotions": "Promotions",
+    "distributors": "Distributors",
     "homepage": "Homepage",
     "slideshow": "Slideshow",
     "customers": "Customers",
     "users": "Users",
+    "translations": "Content & Text",
     "settings": "Settings"
+  },
+  "translations": {
+    "title": "Content & Text",
+    "subtitle": "Edit every piece of text on the website, in English and Macedonian. Changes go live instantly — no code required.",
+    "search": "Search text…",
+    "english": "English",
+    "macedonian": "Macedonian (Македонски)",
+    "save": "Save Changes",
+    "saved": "Changes saved. They are now live on the website.",
+    "reset": "Reset to original",
+    "overridden": "Edited",
+    "pending": "{{count}} unsaved change",
+    "pending_other": "{{count}} unsaved changes",
+    "noResults": "No text matches your search."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -28,7 +45,12 @@
     "totalCustomers": "Customers",
     "recentOrders": "Recent Orders",
     "popularPaintings": "Popular Paintings",
-    "popularCategories": "Popular Categories"
+    "popularCategories": "Popular Categories",
+    "topDistributors": "Top Distributors",
+    "distributor": "Distributor",
+    "orders": "Orders",
+    "sales": "Sales",
+    "noDistributorSales": "No distributor sales yet. Distributors appear here, ranked by revenue, once orders are placed with their promo codes."
   },
   "table": {
     "search": "Search…",
@@ -39,15 +61,53 @@
     "name": "Name",
     "price": "Price",
     "category": "Category",
+    "image": "Image",
+    "code": "Code",
+    "tags": "Tags",
     "createdAt": "Created",
-    "confirmDelete": "Are you sure you want to delete this item?"
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "loadError": "Couldn't load this data. Please check your connection and try again.",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "promo": "Promo / Distributor",
+    "updatedAt": "Last update",
+    "view": "View"
+  },
+  "orderDetail": {
+    "title": "Order {{number}}",
+    "customer": "Customer",
+    "contact": "Contact",
+    "shipping": "Shipping address",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "promoDiscount": "Promo discount",
+    "shippingCost": "Shipping",
+    "total": "Total",
+    "promoCode": "Promo code",
+    "distributor": "Distributor",
+    "placedAt": "Placed",
+    "updatedAt": "Last updated",
+    "notes": "Notes",
+    "history": "Status history",
+    "noHistory": "No status changes yet."
   },
   "form": {
     "addNew": "Add New",
     "editItem": "Edit",
     "uploadImage": "Upload Image",
     "dragDropHint": "Drag and drop an image here, or click to browse",
-    "uploading": "Uploading…"
+    "uploading": "Uploading…",
+    "currentImages": "Current images — upload new ones to add or replace them.",
+    "currentImage": "Current image — upload a new one to replace it."
+  },
+  "frames": {
+    "filterAll": "All",
+    "filterWithImage": "Uploaded",
+    "filterWithoutImage": "Missing image",
+    "image": "Image",
+    "hasImage": "Uploaded",
+    "missingImage": "Missing"
   },
   "orders": {
     "status": {
@@ -59,5 +119,20 @@
       "delivered": "Delivered",
       "cancelled": "Cancelled"
     }
+  },
+  "distributors": {
+    "contact": "Contact",
+    "email": "Email",
+    "phone": "Phone",
+    "active": "Active",
+    "inactive": "Inactive",
+    "codes": "Promo Codes",
+    "manageCodes": "Manage",
+    "codesFor": "Promo codes — {{name}}",
+    "code": "Code",
+    "discount": "Discount %",
+    "noCodes": "No promo codes yet.",
+    "addCode": "Add Code",
+    "editCode": "Edit Code"
   }
 }

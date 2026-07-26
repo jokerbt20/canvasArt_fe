@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
@@ -21,6 +22,8 @@ import { SizeSelector } from "../../components/painting/SizeSelector";
 import { FrameSelector } from "../../components/painting/FrameSelector";
 import { usePainting } from "../../hooks/usePaintings";
 import { useCart } from "../../contexts/CartContext";
+import { cartService } from "../../services/cartService";
+import { queryKeys } from "../../api/queryKeys";
 import { calculateDiscountPercent } from "../../utils/format";
 
 export default function PaintingDetailsPage() {
@@ -31,7 +34,6 @@ export default function PaintingDetailsPage() {
 
   const [sizeId, setSizeId] = useState<number | null>(null);
   const [frameId, setFrameId] = useState<number | null>(null);
-  const [frameSizeId, setFrameSizeId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
 
@@ -40,7 +42,6 @@ export default function PaintingDetailsPage() {
       const defaultSize = painting.sizes.find((s) => s.isDefault) ?? painting.sizes[0];
       setSizeId(defaultSize.id);
       setFrameId(null);
-      setFrameSizeId(null);
       setQuantity(1);
     }
   }, [painting?.id]);
@@ -48,6 +49,8 @@ export default function PaintingDetailsPage() {
   const selectedSize = painting?.sizes.find((s) => s.id === sizeId);
   const selectedFrame = painting?.compatibleFrames.find((f) => f.id === frameId);
 
+  // Local estimate (individual painting/frame discounts only) — shown instantly while the
+  // authoritative, bundle-aware price is fetched from the server for the exact selection.
   const estimatedUnitPrice = useMemo(() => {
     if (!selectedSize) return 0;
     return selectedSize.finalPrice + (selectedFrame?.finalPrice ?? 0);
@@ -59,7 +62,27 @@ export default function PaintingDetailsPage() {
     return originalBase > estimatedUnitPrice ? originalBase : undefined;
   }, [selectedSize, selectedFrame, estimatedUnitPrice]);
 
-  const canAddToCart = Boolean(selectedSize) && (frameId === null || frameSizeId !== null);
+  // Authoritative price for the current painting + size + frame, including bundle promotions —
+  // the same figure the cart and checkout will show.
+  const priceLineRequest = painting && sizeId
+    ? [{ paintingId: painting.id, paintingSizeId: sizeId, frameId, quantity: 1 }]
+    : [];
+  const { data: priceCalc } = useQuery({
+    queryKey: queryKeys.cart.calculate(priceLineRequest),
+    queryFn: () => cartService.calculate({ items: priceLineRequest }),
+    enabled: priceLineRequest.length > 0,
+  });
+  const pricedLine = priceCalc?.items[0];
+
+  // Prefer the server price (bundle-aware); fall back to the local estimate until it loads.
+  const unitPrice = pricedLine ? pricedLine.unitFinalPrice : estimatedUnitPrice;
+  const originalPrice = pricedLine
+    ? pricedLine.unitDiscount > 0
+      ? pricedLine.unitPrice
+      : undefined
+    : estimatedOriginalPrice;
+
+  const canAddToCart = Boolean(selectedSize);
 
   const handleAddToCart = () => {
     if (!painting || !selectedSize) return;
@@ -67,21 +90,23 @@ export default function PaintingDetailsPage() {
       paintingId: painting.id,
       paintingSizeId: selectedSize.id,
       frameId,
-      frameSizeId,
       quantity,
       paintingName: painting.name,
       paintingSlug: painting.slug,
       thumbnailPath: painting.images[0]?.thumbnailPath ?? null,
       sizeLabel: selectedSize.label,
       frameName: selectedFrame?.name ?? null,
-      frameSizeLabel: null,
+      // Snapshot the exact price shown (bundle-aware when available) as an instant placeholder;
+      // the cart still confirms it against the server.
+      unitPrice,
+      unitOriginalPrice: originalPrice ?? null,
     });
     setConfirmationOpen(true);
   };
 
   if (isLoading) {
     return (
-      <Container sx={{ pt: { xs: 14, md: 18 }, pb: 10 }}>
+      <Container sx={{ pt: { xs: 14, md: 15 }, pb: 10 }}>
         <Grid container spacing={6}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Skeleton variant="rectangular" sx={{ aspectRatio: "4 / 5" }} />
@@ -99,19 +124,17 @@ export default function PaintingDetailsPage() {
   if (!painting) return null;
 
   const discountPercent =
-    estimatedOriginalPrice && estimatedOriginalPrice > estimatedUnitPrice
-      ? calculateDiscountPercent(estimatedOriginalPrice, estimatedUnitPrice)
+    originalPrice && originalPrice > unitPrice
+      ? calculateDiscountPercent(originalPrice, unitPrice)
       : 0;
 
-  const soldOut = painting.sizes.every((s) => s.stock <= 0);
-
   return (
-    <Box sx={{ pt: { xs: 14, md: 18 }, pb: 12 }}>
+    <Box sx={{ pt: { xs: 14, md: 15 }, pb: 12 }}>
       <PageMeta title={painting.name} description={painting.description ?? undefined} />
       <Container>
         <Grid container spacing={{ xs: 5, md: 8 }}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <ImageViewer images={painting.images} alt={painting.name} />
+            <ImageViewer images={painting.images} alt={painting.name} paintingId={painting.id} frameId={frameId} />
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
@@ -123,7 +146,7 @@ export default function PaintingDetailsPage() {
             </Typography>
 
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 3 }}>
-              <PriceTag price={estimatedUnitPrice} originalPrice={estimatedOriginalPrice} size="large" />
+              <PriceTag price={unitPrice} originalPrice={originalPrice} size="large" />
               {discountPercent > 0 && (
                 <Chip size="small" color="error" label={t("details.discount", { percent: discountPercent })} />
               )}
@@ -144,8 +167,8 @@ export default function PaintingDetailsPage() {
                   frames={painting.compatibleFrames}
                   selectedFrameId={frameId}
                   onSelectFrame={setFrameId}
-                  selectedFrameSizeId={frameSizeId}
-                  onSelectFrameSize={setFrameSizeId}
+                  paintingId={painting.id}
+                  primaryImageId={painting.images.find((i) => i.isPrimary)?.id ?? painting.images[0]?.id ?? null}
                 />
               )}
 
@@ -170,10 +193,10 @@ export default function PaintingDetailsPage() {
               size="large"
               variant="contained"
               sx={{ mt: 4 }}
-              disabled={soldOut || !canAddToCart}
+              disabled={!canAddToCart}
               onClick={handleAddToCart}
             >
-              {soldOut ? t("badges.soldOut") : t("details.addToCart")}
+              {t("details.addToCart")}
             </Button>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>

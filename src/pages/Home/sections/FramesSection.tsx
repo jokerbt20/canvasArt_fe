@@ -49,19 +49,21 @@ export function FramesSection() {
               : frames?.slice(0, 4).map((frame, i) => (
                   <Grid key={frame.id} size={6}>
                     <FadeInSection delay={i * 0.06}>
-                      <Box sx={{ aspectRatio: "1 / 1", bgcolor: "#EFE9DF", overflow: "hidden" }}>
-                        {resolveMediaUrl(frame.thumbnailPath) && (
-                          <Box
-                            component="img"
-                            src={resolveMediaUrl(frame.thumbnailPath)}
-                            alt={frame.name}
-                            sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                        )}
+                      <Box sx={{ width: "50%", mx: "auto" }}>
+                        <Box sx={{ aspectRatio: "1 / 1", bgcolor: "#EFE9DF", overflow: "hidden" }}>
+                          {resolveMediaUrl(frame.thumbnailPath) && (
+                            <Box
+                              component="img"
+                              src={resolveMediaUrl(frame.thumbnailPath)}
+                              alt={frame.name}
+                              sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          {frame.name}
+                        </Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        {frame.name}
-                      </Typography>
                     </FadeInSection>
                   </Grid>
                 ))}

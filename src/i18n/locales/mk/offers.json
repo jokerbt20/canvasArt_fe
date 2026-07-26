@@ -16,7 +16,11 @@
     "salePrice": "Сега",
     "discount": "-{{percent}}%",
     "endsIn": "Завршува {{date}}",
-    "shopNow": "Купи сега"
+    "shopNow": "Купи сега",
+    "paintingBase": "Слика",
+    "frameBase": "Рамка",
+    "addToCart": "Додади во кошничка",
+    "addedToCart": "Додадено во кошничка"
   },
   "empty": "Моментално нема активни понуди — проверете наскоро."
 }

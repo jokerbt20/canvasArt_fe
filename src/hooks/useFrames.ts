@@ -3,11 +3,12 @@ import { queryKeys } from "../api/queryKeys";
 import { frameService } from "../services/frameService";
 import type { CreateFrameRequest, FrameQuery, UpdateFrameRequest } from "../types";
 
-export function useFrames(query: FrameQuery) {
+export function useFrames(query: FrameQuery, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.frames.list(query),
     queryFn: () => frameService.list(query),
     placeholderData: (previous) => previous,
+    enabled: options?.enabled,
   });
 }
 

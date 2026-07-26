@@ -8,6 +8,7 @@
     "title": "Filters",
     "category": "Category",
     "allCategories": "All Categories",
+    "frames": "Frames",
     "priceRange": "Price Range",
     "clear": "Clear Filters",
     "apply": "Apply"
@@ -22,18 +23,19 @@
   "results": {
     "count": "{{count}} painting found",
     "count_other": "{{count}} paintings found",
+    "countFrames": "{{count}} frame found",
+    "countFrames_other": "{{count}} frames found",
     "empty": "No paintings match your search.",
+    "emptyFrames": "No frames match your search.",
     "loadMore": "Load More Paintings"
   },
   "badges": {
     "new": "New",
-    "sale": "Sale",
-    "soldOut": "Sold Out"
+    "sale": "Sale"
   },
   "details": {
     "size": "Size",
     "frame": "Frame",
-    "frameSize": "Frame Size",
     "frameNone": "No Frame",
     "material": "Material",
     "color": "Color",
@@ -49,6 +51,18 @@
     "zoom": "Click to Zoom",
     "specifications": "Specifications",
     "shippingInfo": "Ships in 3-5 business days, carefully packaged.",
-    "relatedTitle": "You May Also Like"
+    "relatedTitle": "You May Also Like",
+    "roomPreview": {
+      "trigger": "Preview on your wall",
+      "unavailable": "A room preview isn't available for this frame yet.",
+      "title": "See it on your wall",
+      "uploadRoom": "Upload a photo of your room",
+      "dragHint": "Click and drag to reposition the frame",
+      "scale": "Scale",
+      "rotation": "Rotation",
+      "perspectiveH": "Perspective (horizontal)",
+      "perspectiveV": "Perspective (vertical)",
+      "download": "Download image"
+    }
   }
 }

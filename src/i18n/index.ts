@@ -22,7 +22,9 @@ import mkAdmin from "./locales/mk/admin.json";
 
 export const supportedLanguages = ["en", "mk"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
-export const defaultLanguage: SupportedLanguage = "en";
+// Macedonian is the default: the site always opens in Macedonian unless the URL or a saved
+// preference says otherwise.
+export const defaultLanguage: SupportedLanguage = "mk";
 
 export const resources = {
   en: {
@@ -67,7 +69,9 @@ i18n
     defaultNS: "common",
     interpolation: { escapeValue: false },
     detection: {
-      order: ["path", "localStorage", "navigator"],
+      // Browser language is intentionally omitted so an English browser doesn't override the
+      // Macedonian default. A new visitor falls back to `mk`; the URL path and a saved choice win.
+      order: ["path", "localStorage"],
       lookupFromPathIndex: 0,
       caches: ["localStorage"],
       lookupLocalStorage: "canvasart_lang",

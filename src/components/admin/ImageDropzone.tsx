@@ -11,9 +11,10 @@ interface ImageDropzoneProps {
   onChange: (files: File[]) => void;
   existingPreviewUrls?: string[];
   multiple?: boolean;
+  accept?: string;
 }
 
-export function ImageDropzone({ files, onChange, existingPreviewUrls = [], multiple = false }: ImageDropzoneProps) {
+export function ImageDropzone({ files, onChange, existingPreviewUrls = [], multiple = false, accept = "image/*" }: ImageDropzoneProps) {
   const { t } = useTranslation("admin");
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -64,7 +65,7 @@ export function ImageDropzone({ files, onChange, existingPreviewUrls = [], multi
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={accept}
           multiple={multiple}
           hidden
           onChange={(e) => handleFiles(e.target.files)}

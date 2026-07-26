@@ -12,9 +12,13 @@ import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 import Skeleton from "@mui/material/Skeleton";
 import Pagination from "@mui/material/Pagination";
+import Alert from "@mui/material/Alert";
+import Tooltip from "@mui/material/Tooltip";
+import CircularProgress from "@mui/material/CircularProgress";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import { EmptyState } from "../common/EmptyState";
 
 export interface AdminColumn<T> {
@@ -30,6 +34,10 @@ interface AdminDataTableProps<T> {
   rows: T[];
   rowKey: (row: T) => string | number;
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
   search?: string;
   onSearchChange?: (value: string) => void;
   onAddNew?: () => void;
@@ -46,6 +54,10 @@ export function AdminDataTable<T>({
   rows,
   rowKey,
   isLoading,
+  isError,
+  onRetry,
+  onRefresh,
+  isRefreshing,
   search,
   onSearchChange,
   onAddNew,
@@ -68,7 +80,7 @@ export function AdminDataTable<T>({
         <Box component="span" sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
           {title}
         </Box>
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           {onSearchChange && (
             <TextField
               size="small"
@@ -77,6 +89,15 @@ export function AdminDataTable<T>({
               onChange={(e) => onSearchChange(e.target.value)}
             />
           )}
+          {onRefresh && (
+            <Tooltip title={t("table.refresh")}>
+              <span>
+                <IconButton onClick={onRefresh} disabled={isRefreshing}>
+                  {isRefreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {onAddNew && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={onAddNew}>
               {t("form.addNew")}
@@ -84,6 +105,23 @@ export function AdminDataTable<T>({
           )}
         </Stack>
       </Stack>
+
+      {isError && (
+        <Box sx={{ px: 3, pb: 2 }}>
+          <Alert
+            severity="error"
+            action={
+              onRetry && (
+                <Button color="inherit" size="small" onClick={onRetry}>
+                  {t("table.retry")}
+                </Button>
+              )
+            }
+          >
+            {t("table.loadError")}
+          </Alert>
+        </Box>
+      )}
 
       <Table>
         <TableHead>

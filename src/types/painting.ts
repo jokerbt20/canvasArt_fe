@@ -9,7 +9,6 @@ export interface PaintingSize {
   price: number;
   finalPrice: number;
   discountAmount: number;
-  stock: number;
   sku: string | null;
   isDefault: boolean;
   displayOrder: number;
@@ -82,7 +81,6 @@ export interface PaintingSizeInput {
   widthCm: number;
   heightCm: number;
   price: number;
-  stock: number;
   sku?: string;
   isDefault: boolean;
   displayOrder: number;
@@ -104,7 +102,7 @@ export interface CreatePaintingRequest {
   compatibleFrameIds?: number[];
 }
 
-export type UpdatePaintingRequest = Omit<CreatePaintingRequest, "code">;
+export type UpdatePaintingRequest = CreatePaintingRequest;
 
 export interface PaintingQuery extends PagedQuery {
   categoryId?: number;

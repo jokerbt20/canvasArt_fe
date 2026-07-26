@@ -16,5 +16,7 @@ export function useCreateAdminUser() {
   return useMutation({
     mutationFn: (payload: CreateUserRequest) => authService.createUser(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["auth", "users"] }),
+    // The dialog renders this error inline, so skip the global toast to avoid duplication.
+    meta: { suppressErrorToast: true, successMessage: "User created." },
   });
 }

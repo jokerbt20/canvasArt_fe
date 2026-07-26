@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Skeleton from "@mui/material/Skeleton";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -13,11 +12,11 @@ import { PriceTag } from "../common/PriceTag";
 import { useCart } from "../../contexts/CartContext";
 import { useLocale, localizedPath } from "../../hooks/useLocale";
 import { resolveMediaUrl } from "../../utils/media";
-import type { CartLineResponse } from "../../types/cart";
-import type { LocalCartLine } from "../../types/cart";
+import type { CartLineResponse, LocalCartLine } from "../../types/cart";
 
 interface CartItemRowProps {
   item: LocalCartLine;
+  /** Authoritative server pricing for this line; the snapshot is used until it arrives. */
   calculatedLine?: CartLineResponse;
 }
 
@@ -26,6 +25,13 @@ export function CartItemRow({ item, calculatedLine }: CartItemRowProps) {
   const { locale } = useLocale();
   const { updateQuantity, removeItem } = useCart();
   const thumbnailUrl = resolveMediaUrl(item.thumbnailPath);
+
+  // Prefer the authoritative server line; fall back to the add-time snapshot until it loads.
+  const lineTotal = calculatedLine ? calculatedLine.lineTotal : item.unitPrice * item.quantity;
+  const lineOriginal = calculatedLine
+    ? calculatedLine.lineSubTotal
+    : (item.unitOriginalPrice ?? item.unitPrice) * item.quantity;
+  const hasDiscount = calculatedLine ? calculatedLine.lineDiscount > 0 : lineOriginal > lineTotal;
 
   return (
     <Stack
@@ -62,7 +68,6 @@ export function CartItemRow({ item, calculatedLine }: CartItemRowProps) {
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {t("item.frame")}: {item.frameName ?? t("item.noFrame")}
-          {item.frameSizeLabel ? ` (${item.frameSizeLabel})` : ""}
         </Typography>
 
         <Stack direction="row" sx={{ mt: 2, alignItems: "center", justifyContent: "space-between" }}>
@@ -77,15 +82,7 @@ export function CartItemRow({ item, calculatedLine }: CartItemRowProps) {
           </Stack>
 
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            {calculatedLine ? (
-              <PriceTag
-                price={calculatedLine.lineTotal}
-                originalPrice={calculatedLine.lineDiscount > 0 ? calculatedLine.lineSubTotal : undefined}
-                size="small"
-              />
-            ) : (
-              <Skeleton width={80} />
-            )}
+            <PriceTag price={lineTotal} originalPrice={hasDiscount ? lineOriginal : undefined} size="small" />
             <IconButton size="small" onClick={() => removeItem(item.id)} aria-label={t("item.remove")}>
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>

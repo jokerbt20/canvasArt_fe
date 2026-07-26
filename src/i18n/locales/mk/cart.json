@@ -38,7 +38,13 @@
     "notes": "Забелешки за нарачката (опционално)",
     "orderSummary": "Преглед на нарачка",
     "placeOrder": "Нарачај",
-    "placingOrder": "Се нарачува…"
+    "placingOrder": "Се нарачува…",
+    "promoCode": "Промо код",
+    "promoApply": "Примени",
+    "promoRemove": "Отстрани",
+    "promoApplied": "Кодот {{code}} е применет — {{percentage}}% попуст",
+    "promoInvalid": "Овој промо код не е валиден.",
+    "promoDiscount": "Промо попуст"
   },
   "validation": {
     "required": "Ова поле е задолжително.",

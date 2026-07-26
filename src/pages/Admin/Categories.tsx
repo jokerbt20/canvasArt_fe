@@ -13,7 +13,9 @@ import Checkbox from "@mui/material/Checkbox";
 import { PageMeta } from "../../components/common/PageMeta";
 import { AdminDataTable, type AdminColumn } from "../../components/admin/AdminDataTable";
 import { ConfirmDialog } from "../../components/admin/ConfirmDialog";
+import { SubmitButton } from "../../components/common/SubmitButton";
 import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "../../hooks/useCategories";
+import { useFieldErrors, v } from "../../utils/validation";
 import type { Category } from "../../types";
 
 interface CategoryFormState {
@@ -28,10 +30,11 @@ const EMPTY_FORM: CategoryFormState = { name: "", slug: "", description: "", dis
 
 export default function AdminCategoriesPage() {
   const { t } = useTranslation(["admin", "common"]);
-  const { data: categories, isLoading } = useCategories();
+  const { data: categories, isLoading, isError, refetch } = useCategories();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  const { errors, validate, clearError, reset } = useFieldErrors<CategoryFormState>();
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -39,11 +42,13 @@ export default function AdminCategoriesPage() {
   const [form, setForm] = useState<CategoryFormState>(EMPTY_FORM);
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
+  const isSaving = createCategory.isPending || updateCategory.isPending;
   const filtered = categories?.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const openCreate = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
+    reset();
     setDialogOpen(true);
   };
 
@@ -56,10 +61,12 @@ export default function AdminCategoriesPage() {
       displayOrder: String(category.displayOrder),
       isActive: category.isActive,
     });
+    reset();
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    if (!validate(form, { name: v.required, displayOrder: v.nonNegativeNumber })) return;
     const payload = {
       name: form.name,
       slug: form.slug || undefined,
@@ -67,12 +74,16 @@ export default function AdminCategoriesPage() {
       displayOrder: Number(form.displayOrder) || 0,
       isActive: form.isActive,
     };
-    if (editing) {
-      await updateCategory.mutateAsync({ id: editing.id, payload });
-    } else {
-      await createCategory.mutateAsync(payload);
+    try {
+      if (editing) {
+        await updateCategory.mutateAsync({ id: editing.id, payload });
+      } else {
+        await createCategory.mutateAsync(payload);
+      }
+      setDialogOpen(false);
+    } catch {
+      // Error toast is shown globally; keep the dialog open so the user can retry.
     }
-    setDialogOpen(false);
   };
 
   const columns: AdminColumn<Category>[] = [
@@ -90,6 +101,8 @@ export default function AdminCategoriesPage() {
         rows={filtered ?? []}
         rowKey={(row) => row.id}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
         search={search}
         onSearchChange={setSearch}
         onAddNew={openCreate}
@@ -101,18 +114,39 @@ export default function AdminCategoriesPage() {
         <DialogTitle>{editing ? t("form.editItem") : t("form.addNew")}</DialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField label={t("table.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth />
+            <TextField
+              label={t("table.name")}
+              value={form.name}
+              onChange={(e) => {
+                setForm({ ...form, name: e.target.value });
+                clearError("name");
+              }}
+              error={Boolean(errors.name)}
+              helperText={errors.name}
+              fullWidth
+            />
             <TextField label="Slug (optional)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} fullWidth />
-            <TextField label="Display Order" type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: e.target.value })} fullWidth />
+            <TextField
+              label="Display Order"
+              type="number"
+              value={form.displayOrder}
+              onChange={(e) => {
+                setForm({ ...form, displayOrder: e.target.value });
+                clearError("displayOrder");
+              }}
+              error={Boolean(errors.displayOrder)}
+              helperText={errors.displayOrder}
+              fullWidth
+            />
             <TextField label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} fullWidth multiline minRows={3} />
             <FormControlLabel control={<Checkbox checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label="Active" />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common:actions.cancel")}</Button>
-          <Button variant="contained" onClick={handleSave} disabled={createCategory.isPending || updateCategory.isPending}>
+          <SubmitButton variant="contained" onClick={handleSave} loading={isSaving}>
             {t("common:actions.save")}
-          </Button>
+          </SubmitButton>
         </DialogActions>
       </Dialog>
 

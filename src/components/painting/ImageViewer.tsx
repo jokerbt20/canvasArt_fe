@@ -1,16 +1,20 @@
 import { useState, type MouseEvent } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import CircularProgress from "@mui/material/CircularProgress";
 import { motion, AnimatePresence } from "framer-motion";
 import { resolveMediaUrl } from "../../utils/media";
+import { useFramePreview } from "../../hooks/useFramePreview";
 import type { PaintingImage } from "../../types";
 
 interface ImageViewerProps {
   images: PaintingImage[];
   alt: string;
+  paintingId: number;
+  frameId: number | null;
 }
 
-export function ImageViewer({ images, alt }: ImageViewerProps) {
+export function ImageViewer({ images, alt, paintingId, frameId }: ImageViewerProps) {
   const sorted = [...images].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -18,6 +22,20 @@ export function ImageViewer({ images, alt }: ImageViewerProps) {
 
   const activeImage = sorted[active];
   const activeUrl = resolveMediaUrl(activeImage?.watermarkPath);
+
+  const {
+    data: framePreview,
+    isLoading: framePreviewLoading,
+    isError: framePreviewErrored,
+  } = useFramePreview({
+    paintingId,
+    frameId: frameId ?? undefined,
+    paintingImageId: activeImage?.id,
+  });
+
+  const framedUrl = frameId !== null && !framePreviewErrored ? resolveMediaUrl(framePreview?.previewUrl) : undefined;
+  const displayUrl = framedUrl ?? activeUrl;
+  const showLoadingOverlay = frameId !== null && framePreviewLoading;
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -34,26 +52,29 @@ export function ImageViewer({ images, alt }: ImageViewerProps) {
         onMouseLeave={() => setZoomed(false)}
         sx={{
           position: "relative",
-          aspectRatio: "4 / 5",
+          width: "100%",
+          maxWidth: { md: 480 },
+          mx: { md: "auto" },
           overflow: "hidden",
           bgcolor: "#EFE9DF",
           cursor: "zoom-in",
         }}
       >
         <AnimatePresence mode="wait">
-          {activeUrl && (
+          {displayUrl && (
             <motion.img
-              key={activeImage.id}
-              src={activeUrl}
+              key={`${activeImage.id}-${framedUrl ?? "plain"}`}
+              src={displayUrl}
               alt={alt}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
               style={{
+                display: "block",
                 width: "100%",
-                height: "100%",
-                objectFit: "cover",
+                height: "auto",
+                objectFit: "contain",
                 transformOrigin: origin,
                 transform: zoomed ? "scale(1.8)" : "scale(1)",
                 transition: "transform 200ms ease",
@@ -61,10 +82,25 @@ export function ImageViewer({ images, alt }: ImageViewerProps) {
             />
           )}
         </AnimatePresence>
+
+        {showLoadingOverlay && (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(239,233,223,0.55)",
+            }}
+          >
+            <CircularProgress size={28} />
+          </Box>
+        )}
       </Box>
 
       {sorted.length > 1 && (
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction="row" spacing={1.5} sx={{ justifyContent: { md: "center" } }}>
           {sorted.map((image, i) => {
             const thumbUrl = resolveMediaUrl(image.thumbnailPath);
             return (

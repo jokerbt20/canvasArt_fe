@@ -1,4 +1,4 @@
-import type { PaintingQuery, FrameQuery, OrderQuery, PromotionQuery, ContactMessageQuery } from "../types";
+import type { PaintingQuery, FrameQuery, OrderQuery, PromotionQuery, ContactMessageQuery, FramePreviewParams, DistributorQuery, DistributorDashboardQuery } from "../types";
 
 export const queryKeys = {
   categories: {
@@ -14,6 +14,9 @@ export const queryKeys = {
     list: (query: FrameQuery) => ["frames", "list", query] as const,
     manage: (query: FrameQuery) => ["frames", "manage", query] as const,
     byId: (id: number) => ["frames", "detail", id] as const,
+  },
+  framePreviews: {
+    get: (params: FramePreviewParams) => ["framePreviews", params] as const,
   },
   paintings: {
     all: ["paintings"] as const,
@@ -35,6 +38,13 @@ export const queryKeys = {
   },
   cart: {
     calculate: (items: unknown) => ["cart", "calculate", items] as const,
+  },
+  distributors: {
+    all: ["distributors"] as const,
+    list: (query: DistributorQuery) => ["distributors", "list", query] as const,
+    byId: (id: number) => ["distributors", "detail", id] as const,
+    promoCodes: (id: number) => ["distributors", "promo-codes", id] as const,
+    dashboard: (query: DistributorDashboardQuery) => ["distributors", "dashboard", query] as const,
   },
   slides: {
     active: ["slides", "active"] as const,

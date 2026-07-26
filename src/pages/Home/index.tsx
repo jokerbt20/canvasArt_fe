@@ -4,7 +4,6 @@ import { HeroSlideshow } from "./sections/HeroSlideshow";
 import { FeaturedPaintingsSection } from "./sections/FeaturedPaintingsSection";
 import { FeaturedCategoriesSection } from "./sections/FeaturedCategoriesSection";
 import { FramesSection } from "./sections/FramesSection";
-import { AboutSection } from "./sections/AboutSection";
 import { ContactBanner } from "./sections/ContactBanner";
 
 export default function HomePage() {
@@ -17,7 +16,6 @@ export default function HomePage() {
       <FeaturedPaintingsSection />
       <FeaturedCategoriesSection />
       <FramesSection />
-      <AboutSection />
       <ContactBanner />
     </>
   );

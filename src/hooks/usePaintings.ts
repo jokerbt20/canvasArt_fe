@@ -3,11 +3,12 @@ import { queryKeys } from "../api/queryKeys";
 import { paintingService } from "../services/paintingService";
 import type { CreatePaintingRequest, PaintingQuery, UpdatePaintingRequest } from "../types";
 
-export function usePaintings(query: PaintingQuery) {
+export function usePaintings(query: PaintingQuery, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.paintings.list(query),
     queryFn: () => paintingService.list(query),
     placeholderData: (previous) => previous,
+    enabled: options?.enabled,
   });
 }
 

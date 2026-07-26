@@ -11,12 +11,15 @@ import Chip from "@mui/material/Chip";
 import { PageMeta } from "../../components/common/PageMeta";
 import { StatCard } from "../../components/admin/StatCard";
 import { useOrderStats, useOrders } from "../../hooks/useOrders";
+import { useDistributorDashboard } from "../../hooks/useDistributors";
 import { formatPrice } from "../../utils/format";
 
 export default function AdminDashboardPage() {
   const { t } = useTranslation("admin");
   const { data: stats, isLoading } = useOrderStats();
   const { data: recentOrders } = useOrders({ page: 1, pageSize: 8, sortBy: "createdAt", sortDir: "desc" });
+  const { data: topDistributors } = useDistributorDashboard({});
+  const rankedDistributors = (topDistributors ?? []).filter((d) => d.orderCount > 0).slice(0, 8);
 
   return (
     <Box>
@@ -66,6 +69,36 @@ export default function AdminDashboardPage() {
             ))}
           </TableBody>
         </Table>
+      </Box>
+
+      <Box sx={{ border: "1px solid", borderColor: "divider", bgcolor: "background.paper", p: 3, mt: 4 }}>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          {t("dashboard.topDistributors")}
+        </Typography>
+        {rankedDistributors.length > 0 ? (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t("dashboard.distributor")}</TableCell>
+                <TableCell align="right">{t("dashboard.orders")}</TableCell>
+                <TableCell align="right">{t("dashboard.sales")}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rankedDistributors.map((row) => (
+                <TableRow key={row.distributorId}>
+                  <TableCell>{row.distributorName}</TableCell>
+                  <TableCell align="right">{row.orderCount}</TableCell>
+                  <TableCell align="right">{formatPrice(row.totalSales)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t("dashboard.noDistributorSales")}
+          </Typography>
+        )}
       </Box>
     </Box>
   );

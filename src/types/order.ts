@@ -30,6 +30,7 @@ export interface CreateOrderRequest {
   country: string;
   postalCode: string;
   notes?: string;
+  promoCode?: string;
   items: CartLineRequest[];
 }
 
@@ -40,8 +41,8 @@ export interface OrderItem {
   paintingName: string;
   sizeLabel: string;
   frameName: string | null;
-  frameSizeLabel: string | null;
   thumbnailPath: string | null;
+  frameThumbnailPath: string | null;
   unitPrice: number;
   framePrice: number;
   discountAmount: number;
@@ -66,7 +67,10 @@ export interface OrderListItem {
   status: OrderStatus;
   grandTotal: number;
   itemCount: number;
+  promoCode: string | null;
+  distributorName: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface OrderDetail {
@@ -84,8 +88,11 @@ export interface OrderDetail {
   status: OrderStatus;
   subTotal: number;
   discountTotal: number;
+  promoDiscount: number;
   shippingCost: number;
   grandTotal: number;
+  promoCode: string | null;
+  distributorName: string | null;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];

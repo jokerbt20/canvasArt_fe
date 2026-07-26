@@ -9,20 +9,24 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import { PageMeta } from "../../components/common/PageMeta";
 import { AdminDataTable, type AdminColumn } from "../../components/admin/AdminDataTable";
 import { ConfirmDialog } from "../../components/admin/ConfirmDialog";
 import { ImageDropzone } from "../../components/admin/ImageDropzone";
-import { useCreateFrame, useDeleteFrame, useFrames, useUpdateFrame, useUploadFrameImage } from "../../hooks/useFrames";
+import { SubmitButton } from "../../components/common/SubmitButton";
+import { useCreateFrame, useDeleteFrame, useManageFrames, useUpdateFrame, useUploadFrameImage } from "../../hooks/useFrames";
+import { useFieldErrors, v } from "../../utils/validation";
 import { formatPrice } from "../../utils/format";
 import { resolveMediaUrl } from "../../utils/media";
-import type { FrameListItem, FrameSizeInput } from "../../types";
+import type { FrameListItem } from "../../types";
+
+type ImageFilter = "all" | "withImage" | "withoutImage";
 
 interface FrameFormState {
   name: string;
@@ -30,31 +34,31 @@ interface FrameFormState {
   color: string;
   description: string;
   basePrice: string;
-  stock: string;
   isActive: boolean;
-  sizes: FrameSizeInput[];
 }
 
-const EMPTY_SIZE: FrameSizeInput = { label: "", widthCm: 0, heightCm: 0, price: 0, stock: 0, displayOrder: 0, isActive: true };
 const EMPTY_FORM: FrameFormState = {
   name: "",
   material: "",
   color: "",
   description: "",
   basePrice: "",
-  stock: "0",
   isActive: true,
-  sizes: [{ ...EMPTY_SIZE }],
 };
 
 export default function AdminFramesPage() {
   const { t } = useTranslation(["admin", "common"]);
-  const { data: result, isLoading } = useFrames({ page: 1, pageSize: 50 });
+  const [imageFilter, setImageFilter] = useState<ImageFilter>("all");
+  const hasImage = imageFilter === "all" ? undefined : imageFilter === "withImage";
+  const { data: result, isLoading, isError, refetch } = useManageFrames({ page: 1, pageSize: 50, hasImage });
   const frames = result?.items ?? [];
   const createFrame = useCreateFrame();
   const updateFrame = useUpdateFrame();
   const deleteFrame = useDeleteFrame();
   const uploadImage = useUploadFrameImage();
+  const { errors, validate, clearError, reset } = useFieldErrors<FrameFormState>();
+
+  const isSaving = createFrame.isPending || updateFrame.isPending || uploadImage.isPending;
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -69,6 +73,7 @@ export default function AdminFramesPage() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setImageFiles([]);
+    reset();
     setDialogOpen(true);
   };
 
@@ -80,62 +85,84 @@ export default function AdminFramesPage() {
       color: frame.color,
       description: "",
       basePrice: String(frame.basePrice),
-      stock: String(frame.stock),
       isActive: frame.isActive,
-      sizes: [{ ...EMPTY_SIZE }],
     });
     setImageFiles([]);
+    reset();
     setDialogOpen(true);
   };
 
-  const updateSize = (index: number, field: keyof FrameSizeInput, value: string | number) => {
-    setForm((prev) => ({
-      ...prev,
-      sizes: prev.sizes.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
-    }));
-  };
-  const addSize = () => setForm((prev) => ({ ...prev, sizes: [...prev.sizes, { ...EMPTY_SIZE }] }));
-  const removeSize = (index: number) =>
-    setForm((prev) => ({ ...prev, sizes: prev.sizes.filter((_, i) => i !== index) }));
-
   const handleSave = async () => {
+    if (
+      !validate(form, {
+        name: v.required,
+        material: v.required,
+        color: v.required,
+        basePrice: v.positiveNumber,
+      })
+    )
+      return;
+
     const payload = {
       name: form.name,
       material: form.material,
       color: form.color,
       description: form.description || undefined,
       basePrice: Number(form.basePrice) || 0,
-      stock: Number(form.stock) || 0,
       isActive: form.isActive,
-      sizes: form.sizes.filter((s) => s.label),
     };
 
-    const saved = editing
-      ? await updateFrame.mutateAsync({ id: editing.id, payload })
-      : await createFrame.mutateAsync(payload);
+    try {
+      const saved = editing
+        ? await updateFrame.mutateAsync({ id: editing.id, payload })
+        : await createFrame.mutateAsync(payload);
 
-    if (imageFiles[0]) {
-      await uploadImage.mutateAsync({ id: saved.id, file: imageFiles[0] });
+      if (imageFiles[0]) {
+        await uploadImage.mutateAsync({ id: saved.id, file: imageFiles[0] });
+      }
+      setDialogOpen(false);
+    } catch {
+      // Error toast is shown globally; keep the dialog open so the user can retry.
     }
-    setDialogOpen(false);
   };
 
   const columns: AdminColumn<FrameListItem>[] = [
     { key: "name", label: t("table.name"), render: (row) => row.name },
     { key: "material", label: "Material", render: (row) => row.material },
     { key: "color", label: "Color", render: (row) => row.color },
+    {
+      key: "image",
+      label: t("frames.image"),
+      render: (row) =>
+        row.thumbnailPath ? (
+          <Chip size="small" color="success" label={t("frames.hasImage")} />
+        ) : (
+          <Chip size="small" color="warning" label={t("frames.missingImage")} />
+        ),
+    },
     { key: "price", label: t("table.price"), render: (row) => formatPrice(row.finalPrice), align: "right" },
   ];
 
   return (
     <Box>
       <PageMeta title={t("nav.frames")} />
+      <Tabs
+        value={imageFilter}
+        onChange={(_, v) => setImageFilter(v)}
+        sx={{ mb: 2, minHeight: 36 }}
+      >
+        <Tab value="all" label={t("frames.filterAll")} sx={{ minHeight: 36 }} />
+        <Tab value="withImage" label={t("frames.filterWithImage")} sx={{ minHeight: 36 }} />
+        <Tab value="withoutImage" label={t("frames.filterWithoutImage")} sx={{ minHeight: 36 }} />
+      </Tabs>
       <AdminDataTable
         title={t("nav.frames")}
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
         search={search}
         onSearchChange={setSearch}
         onAddNew={openCreate}
@@ -143,75 +170,85 @@ export default function AdminFramesPage() {
         onDelete={setPendingDelete}
       />
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? t("form.editItem") : t("form.addNew")}</DialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField label={t("table.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth />
+            <TextField
+              label={t("table.name")}
+              value={form.name}
+              onChange={(e) => {
+                setForm({ ...form, name: e.target.value });
+                clearError("name");
+              }}
+              error={Boolean(errors.name)}
+              helperText={errors.name}
+              fullWidth
+            />
             <Grid container spacing={2}>
               <Grid size={6}>
-                <TextField label="Material" value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} fullWidth />
+                <TextField
+                  label="Material"
+                  value={form.material}
+                  onChange={(e) => {
+                    setForm({ ...form, material: e.target.value });
+                    clearError("material");
+                  }}
+                  error={Boolean(errors.material)}
+                  helperText={errors.material}
+                  fullWidth
+                />
               </Grid>
               <Grid size={6}>
-                <TextField label="Color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} fullWidth />
+                <TextField
+                  label="Color"
+                  value={form.color}
+                  onChange={(e) => {
+                    setForm({ ...form, color: e.target.value });
+                    clearError("color");
+                  }}
+                  error={Boolean(errors.color)}
+                  helperText={errors.color}
+                  fullWidth
+                />
               </Grid>
               <Grid size={6}>
-                <TextField label="Base Price" type="number" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} fullWidth />
-              </Grid>
-              <Grid size={6}>
-                <TextField label="Stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} fullWidth />
+                <TextField
+                  label="Base Price"
+                  type="number"
+                  value={form.basePrice}
+                  onChange={(e) => {
+                    setForm({ ...form, basePrice: e.target.value });
+                    clearError("basePrice");
+                  }}
+                  error={Boolean(errors.basePrice)}
+                  helperText={errors.basePrice}
+                  fullWidth
+                />
               </Grid>
             </Grid>
             <TextField label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} fullWidth multiline minRows={2} />
             <FormControlLabel control={<Checkbox checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label="Active" />
 
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-                Sizes
-              </Typography>
-              <Stack spacing={1.5}>
-                {form.sizes.map((size, i) => (
-                  <Grid container spacing={1.5} key={i} sx={{ alignItems: "center" }}>
-                    <Grid size={3}>
-                      <TextField size="small" label="Label" value={size.label} onChange={(e) => updateSize(i, "label", e.target.value)} fullWidth />
-                    </Grid>
-                    <Grid size={2.5}>
-                      <TextField size="small" label="Width cm" type="number" value={size.widthCm} onChange={(e) => updateSize(i, "widthCm", Number(e.target.value))} fullWidth />
-                    </Grid>
-                    <Grid size={2.5}>
-                      <TextField size="small" label="Height cm" type="number" value={size.heightCm} onChange={(e) => updateSize(i, "heightCm", Number(e.target.value))} fullWidth />
-                    </Grid>
-                    <Grid size={2}>
-                      <TextField size="small" label="Price" type="number" value={size.price} onChange={(e) => updateSize(i, "price", Number(e.target.value))} fullWidth />
-                    </Grid>
-                    <Grid size={1.5}>
-                      <TextField size="small" label="Stock" type="number" value={size.stock} onChange={(e) => updateSize(i, "stock", Number(e.target.value))} fullWidth />
-                    </Grid>
-                    <Grid size={0.5}>
-                      <IconButton size="small" onClick={() => removeSize(i)}>
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                ))}
-                <Button startIcon={<AddIcon />} onClick={addSize} size="small" sx={{ alignSelf: "flex-start" }}>
-                  Add Size
-                </Button>
-              </Stack>
+              {editing?.thumbnailPath && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+                  {t("form.currentImage")}
+                </Typography>
+              )}
+              <ImageDropzone
+                files={imageFiles}
+                onChange={setImageFiles}
+                existingPreviewUrls={editing?.thumbnailPath ? [resolveMediaUrl(editing.thumbnailPath) ?? ""] : []}
+              />
             </Box>
-
-            <ImageDropzone
-              files={imageFiles}
-              onChange={setImageFiles}
-              existingPreviewUrls={editing?.thumbnailPath ? [resolveMediaUrl(editing.thumbnailPath) ?? ""] : []}
-            />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common:actions.cancel")}</Button>
-          <Button variant="contained" onClick={handleSave} disabled={createFrame.isPending || updateFrame.isPending}>
+          <SubmitButton variant="contained" onClick={handleSave} loading={isSaving}>
             {t("common:actions.save")}
-          </Button>
+          </SubmitButton>
         </DialogActions>
       </Dialog>
 
