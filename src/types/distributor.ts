@@ -30,6 +30,12 @@ export interface PromoCode {
   code: string;
   discountPercentage: number;
   isActive: boolean;
+  /** First valid day (ISO); null = immediately. */
+  startsAt: string | null;
+  /** Last valid day, inclusive (ISO); null = no end. */
+  endsAt: string | null;
+  /** Active and inside its window right now — what checkout accepts. */
+  isCurrentlyValid: boolean;
   createdAt: string;
 }
 
@@ -38,12 +44,16 @@ export interface CreatePromoCodeRequest {
   code: string;
   discountPercentage: number;
   isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
 }
 
 export interface UpdatePromoCodeRequest {
   code: string;
   discountPercentage: number;
   isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
 }
 
 export interface ApplyPromoCodeRequest {

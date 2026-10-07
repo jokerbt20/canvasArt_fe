@@ -12,6 +12,8 @@ export interface SettingFieldDef {
   key: string;
   label: string;
   multiline?: boolean;
+  placeholder?: string;
+  helperText?: string;
 }
 
 interface SettingsGroupEditorProps {
@@ -71,6 +73,8 @@ export function SettingsGroupEditor({ group, title, fields }: SettingsGroupEdito
               key={field.key}
               fullWidth
               label={field.label}
+              placeholder={field.placeholder}
+              helperText={field.helperText}
               value={values[field.key] ?? ""}
               onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
               disabled={isLoading}

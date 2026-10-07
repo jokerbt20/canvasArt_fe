@@ -15,8 +15,29 @@ interface Vec2 {
 }
 
 interface RoomPreviewProps {
-  /** Hosted URL of the server-composited framed painting. */
+  /** Hosted URL of the server-composited framed painting (or the bare painting). */
   framedSrc: string;
+  /** Download file name without extension, e.g. the painting's slug. */
+  fileName?: string;
+}
+
+function loadImage(src: string, cors: boolean): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    if (cors) img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/**
+ * Remote URLs get a marker query param for the CORS load: a copy the browser cached earlier
+ * *without* CORS headers (e.g. from the gallery <img>) would otherwise be reused and fail.
+ */
+function withCorsBust(src: string) {
+  if (src.startsWith("blob:") || src.startsWith("data:")) return src;
+  return `${src}${src.includes("?") ? "&" : "?"}cors=1`;
 }
 
 // Internal canvas resolution and pseudo-3D projection constants — matches the
@@ -99,7 +120,7 @@ function drawPerspQuad(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cor
   }
 }
 
-export function RoomPreview({ framedSrc }: RoomPreviewProps) {
+export function RoomPreview({ framedSrc, fileName }: RoomPreviewProps) {
   const { t } = useTranslation("gallery");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -110,6 +131,8 @@ export function RoomPreview({ framedSrc }: RoomPreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [hasRoom, setHasRoom] = useState(false);
+  const [exportBlocked, setExportBlocked] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
   const [pos, setPos] = useState({ x: 0.5, y: 0.38 });
   const [scale, setScale] = useState(0.35);
   const [rotation, setRotation] = useState(0);
@@ -196,12 +219,23 @@ export function RoomPreview({ framedSrc }: RoomPreviewProps) {
   }, [draw]);
 
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      framedImg.current = img;
-      drawRef.current();
+    let cancelled = false;
+    // The painting/frame image is served by the API (another origin). Request it with CORS so the
+    // canvas stays untainted and "Download image" can export it. If CORS isn't available, fall back
+    // to a plain load so the preview still works — only the download is disabled then.
+    loadImage(withCorsBust(framedSrc), true)
+      .then((img) => ({ img, exportable: true }))
+      .catch(() => loadImage(framedSrc, false).then((img) => ({ img, exportable: false })))
+      .then(({ img, exportable }) => {
+        if (cancelled) return;
+        framedImg.current = img;
+        setExportBlocked(!exportable);
+        drawRef.current();
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
     };
-    img.src = framedSrc;
   }, [framedSrc]);
 
   useEffect(() => {
@@ -254,13 +288,35 @@ export function RoomPreview({ framedSrc }: RoomPreviewProps) {
     dragging.current = false;
   }, []);
 
+  /** Saves exactly what is on the canvas (room photo + positioned painting) as a JPEG. */
   const exportImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/jpeg", 0.95);
-    a.download = "room-preview.jpg";
-    a.click();
+    setDownloadError(false);
+    try {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            setDownloadError(true);
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${fileName || "canvasarts-room-preview"}.jpg`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          // Give the browser a moment to start the download before releasing the blob.
+          window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        },
+        "image/jpeg",
+        0.95,
+      );
+    } catch {
+      // SecurityError: the canvas is tainted by a cross-origin image without CORS headers.
+      setDownloadError(true);
+    }
   };
 
   return (
@@ -346,9 +402,20 @@ export function RoomPreview({ framedSrc }: RoomPreviewProps) {
         </Grid>
       </Grid>
 
-      <Button variant="contained" startIcon={<DownloadOutlinedIcon />} onClick={exportImage} sx={{ alignSelf: "flex-start" }}>
+      <Button
+        variant="contained"
+        startIcon={<DownloadOutlinedIcon />}
+        onClick={exportImage}
+        disabled={exportBlocked}
+        sx={{ alignSelf: "flex-start" }}
+      >
         {t("details.roomPreview.download")}
       </Button>
+      {(exportBlocked || downloadError) && (
+        <Typography variant="caption" color="error">
+          {t("details.roomPreview.downloadFailed")}
+        </Typography>
+      )}
     </Stack>
   );
 }

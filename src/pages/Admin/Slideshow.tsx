@@ -85,7 +85,7 @@ export default function AdminSlideshowPage() {
         const { painting, image } = selections[i];
         await createSlideFromImage.mutateAsync({
           paintingImageId: image.id,
-          title: painting.name,
+          title: painting.name ?? painting.code,
           subtitle: painting.description ? painting.description.slice(0, 160) : undefined,
           displayOrder: baseOrder + i,
           isActive: true,

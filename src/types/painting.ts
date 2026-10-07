@@ -31,7 +31,8 @@ export interface PaintingImage {
 export interface PaintingListItem {
   id: number;
   code: string;
-  name: string;
+  /** Optional — null means the painting has no title. */
+  name: string | null;
   slug: string;
   categoryId: number;
   categoryName: string | null;
@@ -41,6 +42,12 @@ export interface PaintingListItem {
   isPublished: boolean;
   isFeatured: boolean;
   createdAt: string;
+  // Admin listing only (absent on the public gallery).
+  updatedAt?: string;
+  viewCount?: number;
+  frameCount?: number;
+  sizeCount?: number;
+  imageCount?: number;
 }
 
 export interface CompatibleFrame {
@@ -56,7 +63,7 @@ export interface CompatibleFrame {
 export interface PaintingDetail {
   id: number;
   code: string;
-  name: string;
+  name: string | null;
   slug: string;
   description: string | null;
   context: string | null;
@@ -89,7 +96,7 @@ export interface PaintingSizeInput {
 
 export interface CreatePaintingRequest {
   code?: string;
-  name: string;
+  name?: string | null;
   slug?: string;
   description?: string;
   context?: string;
@@ -113,4 +120,6 @@ export interface PaintingQuery extends PagedQuery {
   minPrice?: number;
   maxPrice?: number;
   color?: string;
+  /** true: has at least one compatible frame; false: none. */
+  hasFrames?: boolean;
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import Box from "@mui/material/Box";
@@ -12,17 +12,27 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Grid from "@mui/material/Grid";
-import Chip from "@mui/material/Chip";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
+import Tooltip from "@mui/material/Tooltip";
+import { alpha } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
+import ImageNotSupportedOutlinedIcon from "@mui/icons-material/ImageNotSupportedOutlined";
+import FilterFramesOutlinedIcon from "@mui/icons-material/FilterFramesOutlined";
+import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
+import PhotoLibraryOutlinedIcon from "@mui/icons-material/PhotoLibraryOutlined";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { PageMeta } from "../../components/common/PageMeta";
 import { PriceTag } from "../../components/common/PriceTag";
 import { AdminDataTable, type AdminColumn } from "../../components/admin/AdminDataTable";
 import { ConfirmDialog } from "../../components/admin/ConfirmDialog";
+import { EASE_OUT, Metric, Pill } from "../../components/admin/TableBadges";
+import { filterFieldSx, formatDate, formatRelative } from "../../components/admin/adminFormat";
+import { palette } from "../../theme/palette";
 import { ImageDropzone } from "../../components/admin/ImageDropzone";
 import { SubmitButton } from "../../components/common/SubmitButton";
 import { queryKeys } from "../../api/queryKeys";
@@ -39,8 +49,43 @@ import {
   useUploadPaintingImage,
 } from "../../hooks/usePaintings";
 import { resolveMediaUrl } from "../../utils/media";
+import { formatPrice } from "../../utils/format";
 import { paintingService } from "../../services/paintingService";
-import type { PaintingListItem, PaintingSizeInput } from "../../types";
+import type { PaintingListItem, PaintingQuery, PaintingSizeInput } from "../../types";
+
+type StatusFilter = "" | "published" | "draft" | "featured";
+type FramesFilter = "" | "with" | "without";
+type SortOption = "newest" | "oldest" | "updated" | "name" | "code" | "views";
+
+interface ListFilters {
+  categoryId: string;
+  tagId: string;
+  status: StatusFilter;
+  frames: FramesFilter;
+  sort: SortOption;
+}
+
+const DEFAULT_FILTERS: ListFilters = { categoryId: "", tagId: "", status: "", frames: "", sort: "newest" };
+
+const SORTS: Record<SortOption, Pick<PaintingQuery, "sortBy" | "sortDir">> = {
+  newest: { sortBy: "created", sortDir: "desc" },
+  oldest: { sortBy: "created", sortDir: "asc" },
+  updated: { sortBy: "updated", sortDir: "desc" },
+  name: { sortBy: "name", sortDir: "asc" },
+  code: { sortBy: "code", sortDir: "asc" },
+  views: { sortBy: "views", sortDir: "desc" },
+};
+
+function toQuery(f: ListFilters): Partial<PaintingQuery> {
+  return {
+    categoryId: f.categoryId ? Number(f.categoryId) : undefined,
+    tagId: f.tagId ? Number(f.tagId) : undefined,
+    isPublished: f.status === "published" ? true : f.status === "draft" ? false : undefined,
+    isFeatured: f.status === "featured" ? true : undefined,
+    hasFrames: f.frames === "with" ? true : f.frames === "without" ? false : undefined,
+    ...SORTS[f.sort],
+  };
+}
 
 interface PaintingFormState {
   code: string;
@@ -68,10 +113,21 @@ const EMPTY_FORM: PaintingFormState = {
 };
 
 export default function AdminPaintingsPage() {
-  const { t } = useTranslation(["admin", "common"]);
+  const { t, i18n } = useTranslation(["admin", "common"]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch } = useManagePaintings({ page, pageSize: 10, search: search || undefined });
+  const [filters, setFilters] = useState<ListFilters>(DEFAULT_FILTERS);
+  const { data, isLoading, isError, refetch } = useManagePaintings({
+    page,
+    pageSize: 25,
+    search: search || undefined,
+    ...toQuery(filters),
+  });
+  const filtersActive = (Object.keys(DEFAULT_FILTERS) as (keyof ListFilters)[]).some((k) => filters[k] !== DEFAULT_FILTERS[k]);
+  const setFilter = <K extends keyof ListFilters>(key: K, value: ListFilters[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  };
   const { data: categories } = useCategories();
   const { data: framesResult } = useFrames({ page: 1, pageSize: 100 });
   const { data: tags } = useTags();
@@ -117,7 +173,7 @@ export default function AdminPaintingsPage() {
       );
       setForm({
         code: detail.code,
-        name: detail.name,
+        name: detail.name ?? "",
         categoryId: String(detail.categoryId),
         description: detail.description ?? "",
         tagIds: detail.tags.map((tag) => tag.id),
@@ -154,7 +210,7 @@ export default function AdminPaintingsPage() {
     setForm((prev) => ({ ...prev, sizes: prev.sizes.filter((_, i) => i !== index) }));
 
   const handleSave = async () => {
-    if (!validate(form, { name: v.required, categoryId: v.required })) return;
+    if (!validate(form, { categoryId: v.required })) return;
 
     // Sizes are a dynamic list — validate them together and surface a clear message.
     const validSizes = form.sizes.filter((s) => s.label.trim());
@@ -169,7 +225,7 @@ export default function AdminPaintingsPage() {
 
     const payload = {
       code: form.code || undefined,
-      name: form.name,
+      name: form.name.trim() || null,
       categoryId: Number(form.categoryId),
       description: form.description || undefined,
       isPublished: form.isPublished,
@@ -196,36 +252,109 @@ export default function AdminPaintingsPage() {
   const columns: AdminColumn<PaintingListItem>[] = [
     {
       key: "image",
-      label: t("table.image"),
+      label: "",
       render: (row) => {
         const url = resolveMediaUrl(row.thumbnailPath);
         return (
-          <Box sx={{ width: 44, height: 56, bgcolor: "#EFE9DF", overflow: "hidden", borderRadius: 0.5, flexShrink: 0 }}>
-            {url && (
-              <Box component="img" src={url} alt={row.name} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <Box
+            sx={{
+              width: 40,
+              height: 52,
+              borderRadius: 1,
+              overflow: "hidden",
+              flexShrink: 0,
+              display: "grid",
+              placeItems: "center",
+              bgcolor: palette.ivoryDeep,
+              boxShadow: `inset 0 0 0 1px ${alpha(palette.charcoal, 0.08)}`,
+              color: alpha(palette.textSecondary, 0.5),
+            }}
+          >
+            {url ? (
+              <Box component="img" src={url} alt="" loading="lazy" sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            ) : (
+              <ImageNotSupportedOutlinedIcon sx={{ fontSize: 18 }} />
             )}
           </Box>
         );
       },
     },
-    { key: "name", label: t("table.name"), render: (row) => row.name },
     {
-      key: "code",
-      label: t("table.code"),
+      key: "painting",
+      label: t("table.painting"),
       render: (row) => (
-        <Typography variant="caption" color="text.secondary" sx={{ fontFamily: "monospace" }}>
-          {row.code}
+        <Box sx={{ minWidth: 180, maxWidth: 280 }}>
+          <Typography
+            noWrap
+            sx={{
+              fontSize: 14,
+              fontWeight: 600,
+              lineHeight: 1.3,
+              color: row.name ? "text.primary" : alpha(palette.textSecondary, 0.6),
+              fontStyle: row.name ? "normal" : "italic",
+            }}
+          >
+            {row.name ?? t("table.untitled")}
+          </Typography>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 0.5, minWidth: 0 }}>
+            <Box
+              component="span"
+              sx={{
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+                fontSize: 11,
+                letterSpacing: "0.02em",
+                color: palette.textSecondary,
+                bgcolor: alpha(palette.charcoal, 0.04),
+                px: 0.75,
+                py: 0.25,
+                borderRadius: 0.75,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {row.code}
+            </Box>
+            {row.categoryName && (
+              <Typography noWrap sx={{ fontSize: 12, color: "text.secondary" }}>
+                {row.categoryName}
+              </Typography>
+            )}
+          </Stack>
+        </Box>
+      ),
+    },
+    { key: "tags", label: t("table.tags"), render: (row) => <PaintingTagsCell id={row.id} /> },
+    {
+      key: "sizes",
+      label: t("table.sizes"),
+      render: (row) => <PaintingSizesCell id={row.id} />,
+    },
+    {
+      key: "frames",
+      label: t("table.frames"),
+      render: (row) => <PaintingFramesCell id={row.id} />,
+    },
+    {
+      key: "images",
+      label: t("table.images"),
+      align: "center",
+      render: (row) => <PaintingImagesCell id={row.id} fallback={row.imageCount} />,
+    },
+    {
+      key: "views",
+      label: t("table.views"),
+      align: "right",
+      render: (row) => (
+        <Typography sx={{ fontSize: 13, fontVariantNumeric: "tabular-nums", color: row.viewCount ? "text.primary" : "text.disabled" }}>
+          {row.viewCount?.toLocaleString(i18n.language) ?? "—"}
         </Typography>
       ),
     },
-    { key: "category", label: t("table.category"), render: (row) => row.categoryName },
-    { key: "tags", label: t("table.tags"), render: (row) => <PaintingTagsCell id={row.id} /> },
     {
       key: "price",
       label: t("table.price"),
       align: "right",
       render: (row) => (
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", fontVariantNumeric: "tabular-nums" }}>
           <PriceTag
             price={row.fromFinalPrice}
             originalPrice={row.fromPrice > row.fromFinalPrice ? row.fromPrice : undefined}
@@ -238,18 +367,130 @@ export default function AdminPaintingsPage() {
       key: "status",
       label: t("table.status"),
       render: (row) => (
-        <Stack direction="row" spacing={0.5}>
-          {row.isFeatured && <Chip size="small" label="Featured" />}
-          {!row.isPublished && <Chip size="small" label="Draft" />}
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+          {row.isPublished ? (
+            <Pill tone="success" dot>{t("filters.published")}</Pill>
+          ) : (
+            <Pill tone="neutral" dot>{t("filters.draft")}</Pill>
+          )}
+          {row.isFeatured && (
+            <Pill tone="gold" icon={<StarRoundedIcon />} tooltip={t("filters.featured")}>
+              {t("filters.featured")}
+            </Pill>
+          )}
         </Stack>
       ),
     },
+    {
+      key: "dates",
+      label: `${t("table.createdAt")} / ${t("table.updatedAt")}`,
+      render: (row) => <PaintingDatesCell id={row.id} createdAt={row.createdAt} updatedAt={row.updatedAt} />,
+    },
   ];
 
+  // Rendered inline on the table toolbar, next to search.
+  const filterBar = (
+    <>
+      <TextField
+        select
+        size="small"
+        label={t("table.category")}
+        value={filters.categoryId}
+        onChange={(e) => setFilter("categoryId", e.target.value)}
+        sx={filterFieldSx(Boolean(filters.categoryId), 150)}
+      >
+        <MenuItem value="">{t("filters.all")}</MenuItem>
+        {categories?.map((c) => (
+          <MenuItem key={c.id} value={String(c.id)}>
+            {c.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        select
+        size="small"
+        label={t("table.tags")}
+        value={filters.tagId}
+        onChange={(e) => setFilter("tagId", e.target.value)}
+        sx={filterFieldSx(Boolean(filters.tagId), 120)}
+      >
+        <MenuItem value="">{t("filters.all")}</MenuItem>
+        {tags?.map((tag) => (
+          <MenuItem key={tag.id} value={String(tag.id)}>
+            {tag.name}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        select
+        size="small"
+        label={t("table.status")}
+        value={filters.status}
+        onChange={(e) => setFilter("status", e.target.value as StatusFilter)}
+        sx={filterFieldSx(Boolean(filters.status), 130)}
+      >
+        <MenuItem value="">{t("filters.all")}</MenuItem>
+        <MenuItem value="published">{t("filters.published")}</MenuItem>
+        <MenuItem value="draft">{t("filters.draft")}</MenuItem>
+        <MenuItem value="featured">{t("filters.featured")}</MenuItem>
+      </TextField>
+      <TextField
+        select
+        size="small"
+        label={t("table.frames")}
+        value={filters.frames}
+        onChange={(e) => setFilter("frames", e.target.value as FramesFilter)}
+        sx={filterFieldSx(Boolean(filters.frames), 130)}
+      >
+        <MenuItem value="">{t("filters.all")}</MenuItem>
+        <MenuItem value="with">{t("filters.withFrames")}</MenuItem>
+        <MenuItem value="without">{t("filters.withoutFrames")}</MenuItem>
+      </TextField>
+      <TextField
+        select
+        size="small"
+        label={t("filters.sort")}
+        value={filters.sort}
+        onChange={(e) => setFilter("sort", e.target.value as SortOption)}
+        sx={filterFieldSx(filters.sort !== DEFAULT_FILTERS.sort, 160)}
+      >
+        {(Object.keys(SORTS) as SortOption[]).map((key) => (
+          <MenuItem key={key} value={key}>
+            {t(`filters.sorts.${key}`)}
+          </MenuItem>
+        ))}
+      </TextField>
+      {filtersActive && (
+        <Button
+          size="small"
+          color="inherit"
+          startIcon={<CloseRoundedIcon />}
+          onClick={() => {
+            setFilters(DEFAULT_FILTERS);
+            setPage(1);
+          }}
+          sx={{
+            color: "text.secondary",
+            // Appears only when a filter is set — fade/scale in rather than pop.
+            animation: `adminFadeIn 160ms ${EASE_OUT}`,
+            "@keyframes adminFadeIn": { from: { opacity: 0, transform: "scale(0.95)" } },
+            transition: `transform 140ms ${EASE_OUT}`,
+            "&:active": { transform: "scale(0.97)" },
+          }}
+        >
+          {t("filters.clear")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
-    <Box>
+    <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
       <PageMeta title={t("nav.paintings")} />
       <AdminDataTable
+        fillHeight
+        filters={filterBar}
+        titleExtra={data && <Pill tone={data.totalCount ? "gold" : "neutral"}>{t("filters.count", { count: data.totalCount })}</Pill>}
         title={t("nav.paintings")}
         columns={columns}
         rows={data?.items ?? []}
@@ -288,12 +529,8 @@ export default function AdminPaintingsPage() {
                 <TextField
                   label={t("table.name")}
                   value={form.name}
-                  onChange={(e) => {
-                    setForm({ ...form, name: e.target.value });
-                    clearError("name");
-                  }}
-                  error={Boolean(errors.name)}
-                  helperText={errors.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  helperText="Optional"
                   fullWidth
                 />
               </Grid>
@@ -324,6 +561,7 @@ export default function AdminPaintingsPage() {
             <TextField
               select
               label="Tags"
+              helperText="Optional"
               value={form.tagIds}
               onChange={(e) => setForm({ ...form, tagIds: (e.target.value as unknown as string[]).map(Number) })}
               fullWidth
@@ -432,30 +670,167 @@ export default function AdminPaintingsPage() {
  * detail (cached, shared with the edit dialog) just to render its tag chips. Errors are
  * silent here — a failed tag fetch shouldn't spam the page with toasts.
  */
-function PaintingTagsCell({ id }: { id: number }) {
-  const { data, isLoading } = useQuery({
+/** Per-row painting detail, shared (one cached request) by the tags/sizes/frames/images cells. */
+function usePaintingRowDetail(id: number) {
+  return useQuery({
     queryKey: queryKeys.paintings.manageById(id),
     queryFn: () => paintingService.manageById(id),
     staleTime: 5 * 60_000,
     meta: { suppressErrorToast: true },
   });
+}
 
-  if (isLoading) return <Skeleton width={90} height={24} />;
+/** Count badge on top, the actual items (truncated) underneath, full list on hover. */
+function CountCell({
+  count,
+  label,
+  emptyLabel,
+  emptyTone,
+  icon,
+  summary,
+  details,
+}: {
+  count: number;
+  label: string;
+  emptyLabel: string;
+  emptyTone: "neutral" | "danger";
+  icon: ReactNode;
+  summary: string;
+  details: ReactNode;
+}) {
+  if (count === 0) return <Pill tone={emptyTone} icon={icon}>{emptyLabel}</Pill>;
+  return (
+    <Tooltip title={details} placement="top-start" arrow>
+      <Box sx={{ maxWidth: 170, cursor: "default" }}>
+        <Pill tone="gold" icon={icon}>{label}</Pill>
+        <Typography noWrap sx={{ fontSize: 11.5, color: "text.secondary", mt: 0.5 }}>
+          {summary}
+        </Typography>
+      </Box>
+    </Tooltip>
+  );
+}
+
+function PaintingSizesCell({ id }: { id: number }) {
+  const { t, i18n } = useTranslation("admin");
+  const { data, isLoading } = usePaintingRowDetail(id);
+  if (isLoading) return <Skeleton width={80} height={22} sx={{ borderRadius: 999 }} />;
+
+  const sizes = (data?.sizes ?? []).filter((s) => s.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
+  return (
+    <CountCell
+      count={sizes.length}
+      label={t("table.sizesCount", { count: sizes.length })}
+      emptyLabel={t("table.noSizes")}
+      emptyTone="danger"
+      icon={<StraightenOutlinedIcon />}
+      summary={sizes.map((s) => s.label).join(" · ")}
+      details={
+        <Box component="table" sx={{ borderSpacing: "12px 2px", mx: -1.5, fontVariantNumeric: "tabular-nums" }}>
+          <tbody>
+            {sizes.map((s) => (
+              <tr key={s.id}>
+                <td style={{ fontWeight: 600 }}>
+                  {s.label}
+                  {s.isDefault && " ★"}
+                </td>
+                <td>
+                  {s.widthCm}×{s.heightCm} cm
+                </td>
+                <td style={{ textAlign: "right" }}>{formatPrice(s.finalPrice, i18n.language)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Box>
+      }
+    />
+  );
+}
+
+function PaintingFramesCell({ id }: { id: number }) {
+  const { t } = useTranslation("admin");
+  const { data, isLoading } = usePaintingRowDetail(id);
+  if (isLoading) return <Skeleton width={80} height={22} sx={{ borderRadius: 999 }} />;
+
+  const frames = data?.compatibleFrames ?? [];
+  return (
+    <CountCell
+      count={frames.length}
+      label={t("table.framesCount", { count: frames.length })}
+      emptyLabel={t("filters.withoutFrames")}
+      emptyTone="neutral"
+      icon={<FilterFramesOutlinedIcon />}
+      summary={frames.map((f) => f.name).join(" · ")}
+      details={
+        <Box component="ul" sx={{ m: 0, pl: 2 }}>
+          {frames.map((f) => (
+            <li key={f.id}>
+              <strong>{f.name}</strong> — {f.material}, {f.color}
+            </li>
+          ))}
+        </Box>
+      }
+    />
+  );
+}
+
+/** Created date, with the last update underneath (relative; exact time on hover). */
+function PaintingDatesCell({ id, createdAt, updatedAt }: { id: number; createdAt: string; updatedAt?: string }) {
+  const { t, i18n } = useTranslation("admin");
+  const { data } = usePaintingRowDetail(id);
+  // The list only carries updatedAt on newer APIs; the row detail always has it.
+  const updated = updatedAt ?? data?.updatedAt;
+  return (
+    <Box sx={{ whiteSpace: "nowrap" }}>
+      <Typography sx={{ fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{formatDate(createdAt, i18n.language)}</Typography>
+      {updated && (
+        <Tooltip title={new Date(updated).toLocaleString(i18n.language)} placement="bottom-start">
+          <Typography component="span" sx={{ fontSize: 11.5, color: "text.secondary", cursor: "default" }}>
+            {t("table.updatedRel", { when: formatRelative(updated, i18n.language) })}
+          </Typography>
+        </Tooltip>
+      )}
+    </Box>
+  );
+}
+
+function PaintingImagesCell({ id, fallback }: { id: number; fallback?: number }) {
+  const { t } = useTranslation("admin");
+  const { data } = usePaintingRowDetail(id);
+  const count = data ? data.images.length : fallback;
+  return (
+    <Metric
+      icon={<PhotoLibraryOutlinedIcon />}
+      value={count}
+      tooltip={count === 0 ? t("table.noImages") : t("table.images")}
+      warnWhenZero
+    />
+  );
+}
+
+function PaintingTagsCell({ id }: { id: number }) {
+  const { data, isLoading } = usePaintingRowDetail(id);
+
+  if (isLoading) return <Skeleton width={90} height={22} sx={{ borderRadius: 999 }} />;
 
   const tags = data?.tags ?? [];
   if (tags.length === 0) {
     return (
-      <Typography variant="caption" color="text.secondary">
+      <Typography variant="caption" color="text.disabled">
         —
       </Typography>
     );
   }
 
+  // Keep rows one line tall: show two tags, fold the rest into a "+N" pill.
+  const visible = tags.slice(0, 2);
+  const hidden = tags.slice(2);
   return (
-    <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", maxWidth: 220 }}>
-      {tags.map((tag) => (
-        <Chip key={tag.id} size="small" variant="outlined" label={tag.name} />
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", maxWidth: 240 }}>
+      {visible.map((tag) => (
+        <Pill key={tag.id}>{tag.name}</Pill>
       ))}
+      {hidden.length > 0 && <Pill tooltip={hidden.map((tag) => tag.name).join(", ")}>+{hidden.length}</Pill>}
     </Stack>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
@@ -22,6 +22,7 @@ export function PaintingCard({ painting, index = 0 }: PaintingCardProps) {
 
   const onSale = painting.fromFinalPrice < painting.fromPrice;
   const isNew = Date.now() - new Date(painting.createdAt).getTime() < NEW_WITHIN_DAYS * 24 * 60 * 60 * 1000;
+  const location = useLocation();
   const thumbnailUrl = resolveMediaUrl(painting.thumbnailPath);
 
   return (
@@ -35,6 +36,7 @@ export function PaintingCard({ painting, index = 0 }: PaintingCardProps) {
       <Box
         component={RouterLink}
         to={localizedPath(locale, `/gallery/${painting.slug}`)}
+        state={{ from: location.pathname + location.search }}
         sx={{ display: "block", textDecoration: "none", color: "inherit" }}
       >
         <Box
@@ -49,7 +51,7 @@ export function PaintingCard({ painting, index = 0 }: PaintingCardProps) {
             <Box
               component="img"
               src={thumbnailUrl}
-              alt={painting.name}
+              alt={painting.name ?? ""}
               onLoad={() => setLoaded(true)}
               sx={{
                 width: "100%",
@@ -74,9 +76,13 @@ export function PaintingCard({ painting, index = 0 }: PaintingCardProps) {
           <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
             {painting.categoryName}
           </Typography>
-          <Typography variant="h6" sx={{ mt: 0.5, mb: 1, textTransform: "none", fontFamily: "inherit", fontWeight: 500 }}>
-            {painting.name}
-          </Typography>
+          {painting.name ? (
+            <Typography variant="h6" sx={{ mt: 0.5, mb: 1, textTransform: "none", fontFamily: "inherit", fontWeight: 500 }}>
+              {painting.name}
+            </Typography>
+          ) : (
+            <Box sx={{ mb: 0.5 }} />
+          )}
           <PriceTag price={painting.fromFinalPrice} originalPrice={onSale ? painting.fromPrice : null} size="small" />
         </Box>
       </Box>

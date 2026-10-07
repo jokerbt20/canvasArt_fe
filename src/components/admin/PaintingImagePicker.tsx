@@ -91,7 +91,7 @@ export function PaintingImagePicker({ selectedIds, onToggle }: PaintingImagePick
               color="text.secondary"
               sx={{ display: "block", mt: 0.5, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
             >
-              {painting.name}
+              {painting.name ?? painting.code}
             </Typography>
           </Box>
         );

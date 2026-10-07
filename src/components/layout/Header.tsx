@@ -73,19 +73,30 @@ export function Header() {
           <Box
             component={RouterLink}
             to={localizedPath(locale, "/")}
-            sx={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+            sx={{ display: "inline-grid", alignItems: "center", textDecoration: "none" }}
           >
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 600,
-                letterSpacing: "0.02em",
-                color: textColor,
-                transition: "color 320ms ease",
-              }}
-            >
-              {t("brand.name")}
-            </Typography>
+            {/* Both logos share one grid cell and crossfade, so the swap follows the
+                header's own 320ms transition instead of popping. */}
+            {[
+              { src: "/logoBlack.png", visible: transparent },
+              { src: "/logo.png", visible: !transparent },
+            ].map(({ src, visible }) => (
+              <Box
+                key={src}
+                component="img"
+                src={src}
+                alt={visible ? t("brand.name") : ""}
+                aria-hidden={!visible}
+                sx={{
+                  gridArea: "1 / 1",
+                  height: { xs: 108, md: 116 },
+                  width: "auto",
+                  display: "block",
+                  opacity: visible ? 1 : 0,
+                  transition: "opacity 320ms ease",
+                }}
+              />
+            ))}
           </Box>
 
           <Stack

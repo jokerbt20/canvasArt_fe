@@ -28,6 +28,25 @@ export default function AdminSettingsPage() {
             { key: "contact.hours", label: "Working Hours" },
           ]}
         />
+        {/* Shown as icons in the site footer; empty fields are hidden there. */}
+        <SettingsGroupEditor
+          group="Social"
+          title={t("settingsPage.social")}
+          fields={[
+            {
+              key: "social.instagram",
+              label: "Instagram",
+              placeholder: "https://instagram.com/canvasarts.mk",
+              helperText: t("settingsPage.socialHint"),
+            },
+            {
+              key: "social.facebook",
+              label: "Facebook",
+              placeholder: "https://facebook.com/canvasarts.mk",
+              helperText: t("settingsPage.socialHint"),
+            },
+          ]}
+        />
       </Stack>
     </>
   );

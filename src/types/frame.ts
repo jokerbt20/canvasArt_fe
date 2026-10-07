@@ -10,6 +10,9 @@ export interface FrameListItem {
   basePrice: number;
   finalPrice: number;
   isActive: boolean;
+  /** Paintings this frame is linked to (newer APIs). */
+  paintingCount?: number;
+  createdAt?: string;
 }
 
 export interface FrameDetail {

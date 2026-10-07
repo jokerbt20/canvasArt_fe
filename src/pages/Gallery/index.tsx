@@ -9,7 +9,6 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Skeleton from "@mui/material/Skeleton";
 import Pagination from "@mui/material/Pagination";
@@ -106,8 +105,6 @@ export default function GalleryPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeCategory = categories?.find((c) => c.id === query.categoryId);
-
   return (
     <Box sx={{ pt: { xs: 14, md: 18 }, pb: 10 }}>
       <PageMeta title={t("title")} description={t("subtitle")} />
@@ -167,15 +164,6 @@ export default function GalleryPage() {
             </Select>
           </Stack>
         </Stack>
-
-        {(activeCategory || isFramesView) && (
-          <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-            <Chip
-              label={isFramesView ? t("filters.frames") : activeCategory!.name}
-              onDelete={() => updateParam("category", undefined)}
-            />
-          </Stack>
-        )}
 
         {!isLoading && data && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

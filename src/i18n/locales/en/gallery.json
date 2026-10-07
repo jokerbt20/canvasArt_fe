@@ -62,7 +62,8 @@
       "rotation": "Rotation",
       "perspectiveH": "Perspective (horizontal)",
       "perspectiveV": "Perspective (vertical)",
-      "download": "Download image"
+      "download": "Download image",
+      "downloadFailed": "Download isn’t available for this image right now. You can still take a screenshot of the preview."
     }
   }
 }

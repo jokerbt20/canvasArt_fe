@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -20,17 +20,26 @@ import { PriceTag } from "../../components/common/PriceTag";
 import { ImageViewer } from "../../components/painting/ImageViewer";
 import { SizeSelector } from "../../components/painting/SizeSelector";
 import { FrameSelector } from "../../components/painting/FrameSelector";
+import { RoomPreviewDialog } from "../../components/painting/RoomPreviewDialog";
 import { usePainting } from "../../hooks/usePaintings";
 import { useCart } from "../../contexts/CartContext";
 import { cartService } from "../../services/cartService";
 import { queryKeys } from "../../api/queryKeys";
 import { calculateDiscountPercent } from "../../utils/format";
+import { PageBreadcrumbs } from "../../components/common/PageBreadcrumbs";
+import { useLocale, localizedPath } from "../../hooks/useLocale";
 
 export default function PaintingDetailsPage() {
   const { t } = useTranslation("gallery");
   const { slug } = useParams<{ slug: string }>();
   const { data: painting, isLoading } = usePainting(slug);
   const { addItem } = useCart();
+  const { t: tc } = useTranslation("common");
+  const { locale } = useLocale();
+  const location = useLocation();
+  const fromPath = (location.state as { from?: string } | null)?.from;
+  // Set by PaintingCard: the exact gallery URL (category/sort/page) the visitor clicked from.
+  const cameFromGallery = Boolean(fromPath && /\/gallery(\?|$)/.test(fromPath));
 
   const [sizeId, setSizeId] = useState<number | null>(null);
   const [frameId, setFrameId] = useState<number | null>(null);
@@ -91,7 +100,7 @@ export default function PaintingDetailsPage() {
       paintingSizeId: selectedSize.id,
       frameId,
       quantity,
-      paintingName: painting.name,
+      paintingName: painting.name ?? painting.code,
       paintingSlug: painting.slug,
       thumbnailPath: painting.images[0]?.thumbnailPath ?? null,
       sizeLabel: selectedSize.label,
@@ -130,20 +139,35 @@ export default function PaintingDetailsPage() {
 
   return (
     <Box sx={{ pt: { xs: 14, md: 15 }, pb: 12 }}>
-      <PageMeta title={painting.name} description={painting.description ?? undefined} />
+      <PageMeta title={painting.name ?? painting.categoryName ?? painting.code} description={painting.description ?? undefined} />
       <Container>
+        <PageBreadcrumbs
+          items={[
+            { label: tc("nav.home"), to: localizedPath(locale, "/") },
+            // Back to the exact gallery view (category, sort, page) the visitor came from, if any.
+            { label: tc("nav.gallery"), to: cameFromGallery ? fromPath : localizedPath(locale, "/gallery") },
+            ...(painting.categoryName
+              ? [{ label: painting.categoryName, to: localizedPath(locale, `/gallery?category=${painting.categoryId}`) }]
+              : []),
+            ...(painting.name ? [{ label: painting.name }] : []),
+          ]}
+        />
         <Grid container spacing={{ xs: 5, md: 8 }}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <ImageViewer images={painting.images} alt={painting.name} paintingId={painting.id} frameId={frameId} />
+            <ImageViewer images={painting.images} alt={painting.name ?? ""} paintingId={painting.id} frameId={frameId} />
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="overline" color="text.secondary">
               {painting.categoryName}
             </Typography>
-            <Typography variant="h2" sx={{ mt: 1, mb: 2 }}>
-              {painting.name}
-            </Typography>
+            {painting.name ? (
+              <Typography variant="h2" sx={{ mt: 1, mb: 2 }}>
+                {painting.name}
+              </Typography>
+            ) : (
+              <Box sx={{ mb: 1 }} />
+            )}
 
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 3 }}>
               <PriceTag price={unitPrice} originalPrice={originalPrice} size="large" />
@@ -167,8 +191,6 @@ export default function PaintingDetailsPage() {
                   frames={painting.compatibleFrames}
                   selectedFrameId={frameId}
                   onSelectFrame={setFrameId}
-                  paintingId={painting.id}
-                  primaryImageId={painting.images.find((i) => i.isPrimary)?.id ?? painting.images[0]?.id ?? null}
                 />
               )}
 
@@ -198,6 +220,8 @@ export default function PaintingDetailsPage() {
             >
               {t("details.addToCart")}
             </Button>
+
+            <RoomPreviewDialog paintingId={painting.id} images={painting.images} frameId={frameId} fileName={painting.slug} sx={{ mt: 1.5 }} />
 
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2 }}>
               {t("details.shippingInfo")}
